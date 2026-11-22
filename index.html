@@ -3,13 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoxPage — Minimalist Document-to-Audiobook Studio</title>
+    <title>VoxPage — Universal Document & Multimedia Audiobook Studio</title>
 
     <!-- Load Font Awesome 4.7 for clean icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
     <!-- Load Vue 3 from the unpkg CDN (Vanilla CST3144 setup) -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <!-- Universal Document Parsers (PDF.js for .pdf, Mammoth.js for Word .docx, JSZip for PowerPoint .pptx & embedded videos) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
     <!-- UI/UX Theme: 2026 "Kuro-Shiro Warm Paper Dark Mode" (ElevenLabs Reader / Audible Minimalist) -->
     <style>
@@ -157,7 +162,7 @@
             gap: 0.85rem;
         }
 
-        /* Paste / Upload New Document Drawer */
+        /* Universal Dropzone & Paste New Document Drawer */
         .paste-card {
             background: var(--bg-card);
             border: 1px solid var(--border-warm);
@@ -166,17 +171,47 @@
             margin-bottom: 1.5rem;
         }
 
+        .universal-dropzone {
+            background: var(--bg-paper);
+            border: 1.5px dashed rgba(217, 119, 6, 0.55);
+            border-radius: var(--radius-md);
+            padding: 1.1rem 1.25rem;
+            margin-bottom: 1rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .format-badges {
+            display: flex;
+            gap: 0.45rem;
+            flex-wrap: wrap;
+            margin-top: 0.35rem;
+        }
+
+        .format-pill {
+            font-size: 0.72rem;
+            font-weight: 700;
+            padding: 0.2rem 0.55rem;
+            border-radius: 6px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-warm);
+            color: var(--text-cream);
+        }
+
         .paste-grid {
             display: grid;
-            grid-template-columns: 1.6fr 1fr 1fr auto;
+            grid-template-columns: 1.5fr 1fr 1fr 1.2fr;
             gap: 0.75rem;
             margin-bottom: 0.85rem;
             align-items: center;
         }
 
-        @media (max-width: 860px) {
+        @media (max-width: 900px) {
             .paste-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: 1fr 1fr;
             }
         }
 
@@ -186,7 +221,7 @@
             color: var(--text-cream);
             padding: 0.65rem 0.85rem;
             border-radius: var(--radius-sm);
-            font-size: 0.88rem;
+            font-size: 0.86rem;
             width: 100%;
             outline: none;
         }
@@ -196,7 +231,7 @@
         }
 
         .textarea-warm {
-            min-height: 155px;
+            min-height: 150px;
             font-family: 'Georgia', serif;
             line-height: 1.6;
             resize: vertical;
@@ -265,12 +300,12 @@
         }
 
         .doc-item-sub {
-            font-size: 0.76rem;
+            font-size: 0.75rem;
             color: var(--text-muted);
-            margin-top: 0.2rem;
+            margin-top: 0.25rem;
         }
 
-        /* Right Column: Reader Page + Audio Player Bar */
+        /* Right Column: Reader Page + Embedded Video Player + Audio Transport Bar */
         .reader-card {
             background: var(--bg-card);
             border: 1px solid var(--border-warm);
@@ -297,6 +332,37 @@
             }
         }
 
+        /* Embedded Video Theater Drawer */
+        .video-theater-card {
+            background: var(--bg-paper);
+            border: 1px solid rgba(217, 119, 6, 0.45);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.15rem;
+        }
+
+        .video-theater-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .video-stage {
+            margin-top: 0.85rem;
+            border-radius: var(--radius-sm);
+            overflow: hidden;
+            background: #000;
+            border: 1px solid var(--border-warm);
+        }
+
+        .video-stage video, .video-stage iframe {
+            width: 100%;
+            max-height: 360px;
+            display: block;
+            border: none;
+        }
+
         /* Book Page View */
         .book-page-header {
             display: flex;
@@ -320,7 +386,7 @@
             border: 1px solid var(--border-warm);
             border-radius: var(--radius-md);
             padding: 1.75rem 2rem;
-            min-height: 270px;
+            min-height: 265px;
             font-family: 'Georgia', 'Times New Roman', serif;
             font-size: 1.15rem;
             line-height: 1.85;
@@ -411,22 +477,22 @@
                 <div class="brand-icon"><i class="fa fa-headphones" aria-hidden="true"></i></div>
                 <div>
                     <h1 v-text="sitename"></h1>
-                    <p>Paste or Upload Any Document • Chapter-by-Chapter Multi-Language Audiobook Reader</p>
+                    <p>Upload Word (.docx), PDF (.pdf), PowerPoint (.pptx), Text, or Video • Multi-Language Audiobook & Video Studio</p>
                 </div>
             </div>
 
             <div class="header-actions">
                 <span class="chapter-badge">
-                    <i class="fa fa-book"></i> {{ documents.length }} Books in Library
+                    <i class="fa fa-book"></i> {{ documents.length }} Documents in Library
                 </span>
                 <button class="btn-gold" v-on:click="showPasteDrawer = !showPasteDrawer">
                     <i class="fa" v-bind:class="showPasteDrawer ? 'fa-times' : 'fa-plus'"></i>
-                    {{ showPasteDrawer ? 'Close Document Editor' : 'Paste / Upload New Document' }}
+                    {{ showPasteDrawer ? 'Close Importer' : '+ Import Word / PDF / PPTX / Video / Text' }}
                 </button>
             </div>
         </header>
 
-        <!-- Saved Progress Resume Banner (lets user pause, leave, and resume where they stopped) -->
+        <!-- Saved Progress Resume Banner -->
         <section v-if="activeDoc && hasSavedProgress(activeDoc) && !isPlaying" class="resume-banner">
             <div>
                 <i class="fa fa-bookmark" style="color: var(--accent-gold-hover); margin-right: 0.5rem;"></i>
@@ -446,14 +512,56 @@
             </div>
         </section>
 
-        <!-- Collapsible Paste or Upload Document Drawer -->
+        <!-- Universal Importer Drawer: Word (.docx), PDF (.pdf), PowerPoint (.pptx), Text (.txt/.md), & Video (.mp4/.webm) -->
         <section v-if="showPasteDrawer" class="paste-card">
-            <div class="section-label">Paste Written Document or Upload a .txt / .md File</div>
+            <div class="section-label">Universal Document & Embedded Video Importer</div>
+
+            <div class="universal-dropzone">
+                <div>
+                    <strong style="font-size: 0.95rem; color: var(--text-cream);">
+                        <i class="fa fa-cloud-upload" style="color: var(--accent-gold-hover);"></i>
+                        Upload Any Document or Video File
+                    </strong>
+                    <div class="format-badges">
+                        <span class="format-pill"><i class="fa fa-file-word-o"></i> Word (.docx)</span>
+                        <span class="format-pill"><i class="fa fa-file-pdf-o"></i> PDF (.pdf)</span>
+                        <span class="format-pill"><i class="fa fa-file-powerpoint-o"></i> PowerPoint (.pptx)</span>
+                        <span class="format-pill"><i class="fa fa-file-text-o"></i> Text / Markdown (.txt, .md)</span>
+                        <span class="format-pill"><i class="fa fa-film"></i> Video (.mp4, .webm, .ogg)</span>
+                    </div>
+                    <div v-if="uploadStatusMsg" style="margin-top: 0.45rem; font-size: 0.8rem; color: var(--accent-gold-hover); font-weight: 600;">
+                        <i class="fa fa-info-circle"></i> {{ uploadStatusMsg }}
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 0.6rem; flex-wrap: wrap;">
+                    <label class="btn-gold" style="display: inline-block; cursor: pointer;">
+                        <i class="fa fa-folder-open"></i> Choose File (.docx, .pdf, .pptx, .txt, .mp4)
+                        <input
+                            type="file"
+                            accept=".txt,.md,.csv,.json,.pdf,.docx,.doc,.pptx,.mp4,.webm,.ogg,.mov"
+                            style="display: none;"
+                            v-on:change="handleUniversalFileUpload"
+                        >
+                    </label>
+
+                    <label class="btn-outline" style="display: inline-block; cursor: pointer;" title="Attach an extra video file to this document">
+                        <i class="fa fa-video-camera"></i> + Attach Extra Video File
+                        <input
+                            type="file"
+                            accept="video/*"
+                            style="display: none;"
+                            v-on:change="handleExtraVideoUpload"
+                        >
+                    </label>
+                </div>
+            </div>
+
             <div class="paste-grid">
                 <input
                     class="input-warm"
                     v-model="newDoc.title"
-                    placeholder="Document Title (e.g. Chapter Notes on Cloud Computing)"
+                    placeholder="Document Title (auto-filled when you upload a file)"
                 >
                 <input
                     class="input-warm"
@@ -465,24 +573,34 @@
                         {{ lang.label }}
                     </option>
                 </select>
-                <label class="btn-outline" style="text-align: center; display: inline-block;">
-                    <i class="fa fa-upload"></i> Upload .txt/.md
-                    <input type="file" accept=".txt,.md" style="display: none;" v-on:change="handleFileUpload">
-                </label>
+                <input
+                    class="input-warm"
+                    v-model="newDoc.videoUrlInput"
+                    placeholder="Optional Video URL (.mp4 or YouTube link)"
+                >
+            </div>
+
+            <!-- Show detected embedded videos before saving -->
+            <div v-if="newDoc.videos.length > 0" style="margin-bottom: 0.75rem; font-size: 0.82rem; color: var(--success);">
+                <i class="fa fa-film"></i>
+                <strong>{{ newDoc.videos.length }} Embedded / Attached Video(s) Ready to Play:</strong>
+                <span v-for="(v, idx) in newDoc.videos" style="margin-left: 0.5rem;" class="format-pill">
+                    {{ idx + 1 }}. {{ v.title }}
+                </span>
             </div>
 
             <textarea
                 class="textarea-warm"
                 v-model="newDoc.rawText"
-                placeholder="Paste your document here... Tip: Start chapters on a new line with 'Chapter 1: ...', 'Chapter 2: ...' or '# Heading' and VoxPage will automatically organize your chapters and pages!"
+                placeholder="Paste any written document here, or upload a Word (.docx), PDF (.pdf), or PowerPoint (.pptx) file above and its extracted chapters/slides will appear here automatically so you can review or edit them before listening!"
             ></textarea>
 
             <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.85rem; flex-wrap: wrap; gap: 0.75rem;">
                 <span style="font-size: 0.8rem; color: var(--text-muted);">
-                    Tip: If your pasted text has no "Chapter" headings, VoxPage automatically splits it into logical chapters and pages for you.
+                    Automatic Extraction: PDF pages become Chapters • PowerPoint slides become Chapters • Embedded videos inside .docx/.pptx or pasted video links become playable!
                 </span>
-                <button class="btn-gold" v-on:click="createAndPlayDocument" v-bind:disabled="!isValidNewDoc">
-                    <i class="fa fa-magic"></i> Convert to Audiobook & Start Reading
+                <button class="btn-gold" v-on:click="createAndPlayDocument" v-bind:disabled="!isValidNewDoc || isParsingFile">
+                    <i class="fa fa-magic"></i> {{ isParsingFile ? 'Extracting Document...' : 'Convert to Audiobook & Start Reading' }}
                 </button>
             </div>
         </section>
@@ -518,16 +636,21 @@
                             </button>
                         </div>
                         <div class="doc-item-sub">
-                            {{ doc.author || 'Personal Document' }} • {{ doc.language }}
-                            • Ch {{ (doc.currentChapterIndex || 0) + 1 }}, Pg {{ (doc.currentPageIndex || 0) + 1 }}
+                            <span class="format-pill" style="padding: 0.1rem 0.35rem; font-size: 0.68rem; margin-right: 0.3rem;">
+                                {{ doc.fileType || 'TEXT' }}
+                            </span>
+                            {{ doc.language }} • Ch {{ (doc.currentChapterIndex || 0) + 1 }}, Pg {{ (doc.currentPageIndex || 0) + 1 }}
+                            <span v-if="docVideosFor(doc).length > 0" style="color: var(--accent-gold-hover); margin-left: 0.25rem;">
+                                • <i class="fa fa-video-camera"></i> {{ docVideosFor(doc).length }} Video
+                            </span>
                         </div>
                     </div>
                 </div>
 
-                <!-- Chapter Selector -->
+                <!-- Chapter / Slide / PDF Page Selector -->
                 <div style="border-top: 1px solid var(--border-warm); padding-top: 0.9rem;">
                     <div class="section-label">
-                        2. Chapters ({{ parsedChapters.length }})
+                        2. Chapters / Slides ({{ parsedChapters.length }})
                     </div>
                     <div
                         v-for="(ch, cIdx) in parsedChapters"
@@ -546,7 +669,7 @@
                 </div>
             </aside>
 
-            <!-- Right Main Panel: Language Controls, Page Jumper, Live Karaoke Page & Audio Player -->
+            <!-- Right Main Panel: Language Controls, Embedded Video Player, Page Jumper, Live Karaoke Page & Audio Player -->
             <main class="reader-card">
                 <!-- Multi-Language, Voice, Playback Speed & Page Skip Toolbar -->
                 <div class="controls-toolbar">
@@ -583,15 +706,62 @@
                     <!-- Skip to Particular Page Selector -->
                     <div>
                         <div class="section-label">Skip to Page (1 – {{ currentChapterPages.length }})</div>
-                        <div style="display: flex; gap: 0.4rem;">
-                            <select class="select-warm" v-model.number="currentPageIndex" v-on:change="jumpToPage(currentPageIndex)">
-                                <option v-for="(pg, pIdx) in currentChapterPages" v-bind:value="pIdx">
-                                    Page {{ pIdx + 1 }} of {{ currentChapterPages.length }}
-                                </option>
-                            </select>
-                        </div>
+                        <select class="select-warm" v-model.number="currentPageIndex" v-on:change="jumpToPage(currentPageIndex)">
+                            <option v-for="(pg, pIdx) in currentChapterPages" v-bind:value="pIdx">
+                                Page {{ pIdx + 1 }} of {{ currentChapterPages.length }}
+                            </option>
+                        </select>
                     </div>
                 </div>
+
+                <!-- Embedded / Attached Video Player Section (Appears whenever the document contains or links to a video!) -->
+                <section v-if="activeDocVideos.length > 0" class="video-theater-card">
+                    <div class="video-theater-header">
+                        <div>
+                            <i class="fa fa-film" style="color: var(--accent-gold-hover); margin-right: 0.45rem;"></i>
+                            <strong style="font-size: 0.9rem;">Video Found in This Document ({{ activeDocVideos.length }})</strong>
+                            <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 0.45rem;">
+                                — {{ activeVideoObj.title }}
+                            </span>
+                        </div>
+
+                        <div style="display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
+                            <select
+                                v-if="activeDocVideos.length > 1"
+                                class="select-warm"
+                                style="width: auto; padding: 0.35rem 0.65rem; font-size: 0.8rem;"
+                                v-model.number="selectedVideoIndex"
+                            >
+                                <option v-for="(v, vIdx) in activeDocVideos" v-bind:value="vIdx">
+                                    Video {{ vIdx + 1 }}: {{ v.title }}
+                                </option>
+                            </select>
+
+                            <button class="btn-gold" style="padding: 0.42rem 0.85rem; font-size: 0.8rem;" v-on:click="openAndPlayVideo">
+                                <i class="fa" v-bind:class="showVideoPlayer ? 'fa-eye-slash' : 'fa-play-circle'"></i>
+                                {{ showVideoPlayer ? 'Hide Video Player' : 'Play Video in Document' }}
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Video Stage (HTML5 <video> for MP4/WebM or embedded <iframe> for YouTube/Vimeo) -->
+                    <div v-if="showVideoPlayer && activeVideoObj" class="video-stage">
+                        <iframe
+                            v-if="activeVideoObj.kind === 'iframe'"
+                            v-bind:src="activeVideoObj.url"
+                            height="340"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen
+                        ></iframe>
+                        <video
+                            v-else
+                            ref="docVideoPlayer"
+                            v-bind:src="activeVideoObj.url"
+                            controls
+                            v-on:play="onVideoPlay"
+                        ></video>
+                    </div>
+                </section>
 
                 <!-- Active Chapter & Page Header -->
                 <div class="book-page-header">
@@ -679,42 +849,59 @@
     </div>
 
     <script type="module">
+        // Configure PDF.js worker CDN
+        if (window.pdfjsLib) {
+            window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
+        }
+
         const BACKEND_URL = "http://localhost:3000";
-        const STORAGE_KEY = "voxpage_docs_v1";
+        const STORAGE_KEY = "voxpage_docs_v2";
         const { createApp } = Vue;
 
         const DEFAULT_DOCUMENTS = [
             {
                 _id: "673b40010000000000000001",
-                title: "The Art of Full-Stack Engineering",
+                title: "The Art of Full-Stack Engineering (with Video Lecture)",
                 author: "CST3144 Study Guide",
+                fileType: "DOCX / Multimedia",
                 language: "en-GB",
                 currentChapterIndex: 0,
                 currentPageIndex: 0,
                 currentSentenceIndex: 0,
                 createdAt: "2026-11-22",
+                videos: [
+                    {
+                        title: "Sample Embedded Lecture Clip (MP4)",
+                        url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
+                        kind: "video"
+                    }
+                ],
                 rawText: "Chapter 1: The Three-Tier Web Architecture\nModern web applications are divided into three clean layers that work together in harmony. The presentation layer runs in the user's browser using HTML, CSS, and reactive Vue.js components. When a user clicks a button, the browser sends an asynchronous HTTP request using the native Fetch API.\nThe application layer runs on a Node.js and Express.js server that listens for incoming requests. Express middlewares inspect, log, and validate the request before routing it to the right handler. This separation keeps the front-end fast and the back-end secure.\n\nChapter 2: Reactive State with Vue.js\nVue.js eliminates manual DOM manipulation by binding data directly to the HTML template. When a variable inside the data object changes, Vue automatically updates every part of the screen that depends on it. Computed properties derive live totals, progress percentages, and filtered lists without duplicating state.\n\nChapter 3: Document Persistence in MongoDB\nMongoDB stores application data as flexible JSON-like documents inside collections rather than rigid SQL tables. Using the native MongoDB driver, our Express server can query, insert, update, and delete documents in milliseconds. Saving reading progress inside a document allows a listener to pause on any page and resume later from the exact same sentence."
             },
             {
                 _id: "673b40010000000000000002",
                 title: "A Short History of Artificial Intelligence",
                 author: "Alan & Ada",
+                fileType: "PDF",
                 language: "en-US",
                 currentChapterIndex: 0,
                 currentPageIndex: 0,
                 currentSentenceIndex: 0,
                 createdAt: "2026-11-22",
+                videos: [],
                 rawText: "Chapter 1: The Imitation Game\nIn 1950, Alan Turing asked a simple but profound question: can machines think? Rather than debating definitions, he proposed a practical conversational test now known as the Turing Test. Early pioneers believed that symbolic rules and logic would quickly solve human intelligence.\nHowever, the physical world proved far more nuanced than chess boards and algebra theorems. Computers excelled at arithmetic, yet struggled to recognize a human face or understand spoken language.\n\nChapter 2: The Rise of Neural Networks\nInspired by the biological neurons of the human brain, researchers designed layered networks that learn directly from examples. With the arrival of graphics processors and massive datasets, deep learning transformed speech recognition and computer vision. Today, neural voices can read entire books aloud with natural rhythm and warmth."
             },
             {
                 _id: "673b40010000000000000003",
                 title: "El Viaje del Lector (Spanish Sample)",
                 author: "Elena Morales",
+                fileType: "PPTX",
                 language: "es-ES",
                 currentChapterIndex: 0,
                 currentPageIndex: 0,
                 currentSentenceIndex: 0,
                 createdAt: "2026-11-22",
+                videos: [],
                 rawText: "Chapter 1: La Biblioteca Nocturna\nLa pequeña lámpara iluminaba las páginas de papel antiguo mientras la lluvia caía suavemente afuera. Escuchar un libro capítulo por capítulo transforma cualquier habitación en un teatro para la imaginación. Cada palabra pronunciada en voz alta construye un puente entre el autor y el oyente.\n\nChapter 2: El Arte de Pausar\nUn buen lector sabe cuándo detenerse para reflexionar sobre una idea importante. Al guardar la página exacta, siempre podemos regresar mañana y continuar la historia desde el mismo lugar."
             }
         ];
@@ -730,6 +917,67 @@
             return DEFAULT_DOCUMENTS.slice();
         }
 
+        // Helper: Normalizes any video URL (direct .mp4/.webm or YouTube link) into a playable object
+        function normalizeVideoObject(url, customTitle) {
+            const clean = String(url || "").trim();
+            if (!clean) return null;
+
+            // Convert YouTube watch/short links into embeddable iframe URLs
+            const ytMatch = clean.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{6,})/i);
+            if (ytMatch) {
+                return {
+                    title: customTitle || "Embedded YouTube Video",
+                    url: "https://www.youtube.com/embed/" + ytMatch[1],
+                    kind: "iframe"
+                };
+            }
+            return {
+                title: customTitle || "Document Video Clip",
+                url: clean,
+                kind: "video"
+            };
+        }
+
+        // Helper: Scans raw text for any embedded video URLs (.mp4, .webm, .ogg, YouTube)
+        function detectVideoUrlsInText(text) {
+            const found = [];
+            const seen = {};
+            const regex = /https?:\/\/[^\s"'<>]+(?:\.(?:mp4|webm|ogg|mov)|youtube\.com\/watch\?v=[A-Za-z0-9_-]+|youtu\.be\/[A-Za-z0-9_-]+)/gi;
+            const matches = String(text || "").match(regex) || [];
+            matches.forEach(function(url, idx) {
+                if (!seen[url]) {
+                    seen[url] = true;
+                    const obj = normalizeVideoObject(url, "Video Link #" + (idx + 1) + " in Document");
+                    if (obj) found.push(obj);
+                }
+            });
+            return found;
+        }
+
+        // Helper: Extracts embedded video files (word/media/* or ppt/media/*) from inside a .docx or .pptx ZIP container
+        async function extractEmbeddedVideosFromZip(zip, sourceLabel) {
+            const extractedVideos = [];
+            const entries = Object.keys(zip.files);
+            for (let i = 0; i < entries.length; i++) {
+                const filePath = entries[i];
+                if (/\.(mp4|webm|ogg|mov)$/i.test(filePath)) {
+                    const fileEntry = zip.files[filePath];
+                    const ext = filePath.split(".").pop().toLowerCase();
+                    const mime = ext === "webm" ? "video/webm" : (ext === "ogg" ? "video/ogg" : "video/mp4");
+                    const blob = await fileEntry.async("blob");
+                    const typedBlob = new Blob([blob], { type: mime });
+                    const blobUrl = URL.createObjectURL(typedBlob);
+                    const baseName = filePath.split("/").pop();
+                    extractedVideos.push({
+                        title: sourceLabel + " Embedded Video (" + baseName + ")",
+                        url: blobUrl,
+                        kind: "video"
+                    });
+                }
+            }
+            return extractedVideos;
+        }
+
         // Helper: Splits raw text into structured Chapters -> Pages (3 sentences per page) -> Sentences
         function parseDocumentIntoChapters(rawText) {
             const cleaned = String(rawText || "").replace(/\r\n/g, "\n").trim();
@@ -742,7 +990,7 @@
             let currentTitle = "Chapter 1";
             let currentBuffer = [];
 
-            const headingRegex = /^(chapter\s+\d+|part\s+\d+|section\s+\d+|#{1,3}\s+)(.*)$/i;
+            const headingRegex = /^(chapter\s+\d+|slide\s+\d+|pdf\s+page\s+\d+|part\s+\d+|section\s+\d+|#{1,3}\s+)(.*)$/i;
 
             lines.forEach(function(line) {
                 const trimmed = line.trim();
@@ -787,9 +1035,11 @@
                 const initialDocs = loadSavedDocs();
                 const firstDoc = initialDocs[0];
                 return {
-                    sitename: "VoxPage Audio Studio",
+                    sitename: "VoxPage Universal Audio & Video Studio",
                     backendOnline: false,
                     showPasteDrawer: false,
+                    isParsingFile: false,
+                    uploadStatusMsg: "",
                     searchQuery: "",
                     allLocalDocs: initialDocs.slice(),
                     documents: initialDocs.slice(),
@@ -801,6 +1051,8 @@
                     selectedVoiceURI: "",
                     playbackRate: 1,
                     isPlaying: false,
+                    showVideoPlayer: false,
+                    selectedVideoIndex: 0,
                     availableVoices: [],
                     languageOptions: [
                         { code: "en-GB", label: "English (UK - en-GB)" },
@@ -817,7 +1069,10 @@
                     newDoc: {
                         title: "",
                         author: "",
+                        fileType: "TEXT",
                         language: "en-GB",
+                        videoUrlInput: "",
+                        videos: [],
                         rawText: ""
                     }
                 };
@@ -879,32 +1134,189 @@
                                String(d.rawText).toLowerCase().includes(q);
                     });
                 },
-                // Handles uploading a .txt or .md file from the user's computer using FileReader
-                handleFileUpload(event) {
+
+                // Universal File Importer: Handles Word (.docx), PDF (.pdf), PowerPoint (.pptx), Text (.txt/.md), and Video (.mp4/.webm)
+                async handleUniversalFileUpload(event) {
                     const file = event.target.files && event.target.files[0];
                     if (!file) return;
-                    if (!this.newDoc.title) {
-                        this.newDoc.title = file.name.replace(/\.(txt|md)$/i, "");
+
+                    const ext = file.name.split(".").pop().toLowerCase();
+                    this.newDoc.title = file.name.replace(/\.[^.]+$/, "");
+                    this.isParsingFile = true;
+                    this.uploadStatusMsg = "Reading " + file.name + "...";
+
+                    try {
+                        // CASE 1: Direct Video File (.mp4, .webm, .ogg, .mov)
+                        if (["mp4", "webm", "ogg", "mov"].includes(ext) || file.type.startsWith("video/")) {
+                            const blobUrl = URL.createObjectURL(file);
+                            this.newDoc.fileType = "VIDEO";
+                            this.newDoc.videos.push({
+                                title: file.name,
+                                url: blobUrl,
+                                kind: "video"
+                            });
+                            if (!this.newDoc.rawText.trim()) {
+                                this.newDoc.rawText = "Chapter 1: Video Companion Notes\nThis document includes the attached video file " + file.name + ". Click Play Video in Document above to watch the video, or paste your transcript and lecture notes here to have VoxPage read them aloud.";
+                            }
+                            this.uploadStatusMsg = "Loaded video file: " + file.name + " (Ready to play!)";
+                        }
+                        // CASE 2: PDF Document (.pdf) via PDF.js
+                        else if (ext === "pdf") {
+                            this.newDoc.fileType = "PDF";
+                            const arrayBuffer = await file.arrayBuffer();
+                            const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                            const pageChapters = [];
+
+                            for (let p = 1; p <= pdf.numPages; p++) {
+                                const page = await pdf.getPage(p);
+                                const textContent = await page.getTextContent();
+                                const pageText = textContent.items.map(function(item) { return item.str; }).join(" ").trim();
+                                if (pageText) {
+                                    pageChapters.push("PDF Page " + p + ": Page " + p + "\n" + pageText);
+                                }
+                                // Check PDF annotations for embedded video links
+                                try {
+                                    const annotations = await page.getAnnotations();
+                                    annotations.forEach((ann) => {
+                                        if (ann.url && /\.(mp4|webm|ogg|mov)|youtube\.com|youtu\.be/i.test(ann.url)) {
+                                            const vObj = normalizeVideoObject(ann.url, "PDF Page " + p + " Video Link");
+                                            if (vObj) this.newDoc.videos.push(vObj);
+                                        }
+                                    });
+                                } catch (e) {}
+                            }
+                            this.newDoc.rawText = pageChapters.join("\n\n") || "Chapter 1: Extracted PDF\nNo selectable text was found in this PDF.";
+                            this.uploadStatusMsg = "Extracted " + pdf.numPages + " PDF page(s) from " + file.name + "!";
+                        }
+                        // CASE 3: Word Document (.docx) via Mammoth.js + JSZip for embedded media
+                        else if (ext === "docx") {
+                            this.newDoc.fileType = "DOCX";
+                            const arrayBuffer = await file.arrayBuffer();
+                            const result = await window.mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+                            this.newDoc.rawText = (result.value || "").trim() || "Chapter 1: Word Document\nNo text found.";
+
+                            // Also inspect the .docx zip archive for any embedded videos in word/media/
+                            if (window.JSZip) {
+                                const zip = await window.JSZip.loadAsync(arrayBuffer);
+                                const embeddedVids = await extractEmbeddedVideosFromZip(zip, "Word");
+                                this.newDoc.videos.push(...embeddedVids);
+                            }
+                            this.uploadStatusMsg = "Extracted Word document (" + file.name + ")" +
+                                (this.newDoc.videos.length ? " + " + this.newDoc.videos.length + " embedded video(s)!" : "!");
+                        }
+                        // CASE 4: PowerPoint Presentation (.pptx) via JSZip slide XML + ppt/media/ video extractor
+                        else if (ext === "pptx") {
+                            this.newDoc.fileType = "PPTX";
+                            const arrayBuffer = await file.arrayBuffer();
+                            const zip = await window.JSZip.loadAsync(arrayBuffer);
+
+                            // Find and sort all slide XML files: ppt/slides/slide1.xml, slide2.xml, ...
+                            const slideFiles = Object.keys(zip.files)
+                                .filter(function(name) { return /^ppt\/slides\/slide\d+\.xml$/i.test(name); })
+                                .sort(function(a, b) {
+                                    const numA = parseInt(a.match(/slide(\d+)\.xml/i)[1], 10);
+                                    const numB = parseInt(b.match(/slide(\d+)\.xml/i)[1], 10);
+                                    return numA - numB;
+                                });
+
+                            const slideChapters = [];
+                            const parser = new DOMParser();
+
+                            for (let i = 0; i < slideFiles.length; i++) {
+                                const xmlStr = await zip.files[slideFiles[i]].async("string");
+                                const xmlDoc = parser.parseFromString(xmlStr, "application/xml");
+                                const textNodes = xmlDoc.getElementsByTagName("a:t");
+                                const texts = [];
+                                for (let t = 0; t < textNodes.length; t++) {
+                                    const val = (textNodes[t].textContent || "").trim();
+                                    if (val) texts.push(val);
+                                }
+                                if (texts.length > 0) {
+                                    slideChapters.push("Slide " + (i + 1) + ": " + texts[0] + "\n" + texts.join(". "));
+                                }
+                            }
+
+                            // Extract any embedded video clips inside ppt/media/
+                            const embeddedVids = await extractEmbeddedVideosFromZip(zip, "PowerPoint");
+                            this.newDoc.videos.push(...embeddedVids);
+
+                            this.newDoc.rawText = slideChapters.join("\n\n") || "Slide 1: PowerPoint Presentation\nNo slide text found.";
+                            this.uploadStatusMsg = "Extracted " + slideFiles.length + " PowerPoint slide(s)" +
+                                (embeddedVids.length ? " + " + embeddedVids.length + " embedded slide video(s)!" : "!");
+                        }
+                        // CASE 5: Plain Text, Markdown, CSV, JSON, or Legacy .doc
+                        else {
+                            this.newDoc.fileType = ext.toUpperCase();
+                            const text = await file.text();
+                            this.newDoc.rawText = text;
+                            this.uploadStatusMsg = "Loaded " + file.name + "!";
+                        }
+                    } catch (err) {
+                        this.uploadStatusMsg = "Could not binary-parse file; reading as plain text.";
+                        try {
+                            this.newDoc.rawText = await file.text();
+                        } catch (e) {}
+                    } finally {
+                        this.isParsingFile = false;
                     }
-                    const reader = new FileReader();
-                    reader.onload = (e) => {
-                        this.newDoc.rawText = String(e.target.result || "");
-                    };
-                    reader.readAsText(file);
                 },
+
+                // Allows attaching an extra video file (.mp4, .webm) to any Word/PDF/PPTX document
+                handleExtraVideoUpload(event) {
+                    const file = event.target.files && event.target.files[0];
+                    if (!file) return;
+                    const blobUrl = URL.createObjectURL(file);
+                    this.newDoc.videos.push({
+                        title: file.name,
+                        url: blobUrl,
+                        kind: "video"
+                    });
+                    this.uploadStatusMsg = "Attached video file: " + file.name;
+                },
+
+                docVideosFor(doc) {
+                    const explicit = Array.isArray(doc.videos) ? doc.videos : [];
+                    const detected = detectVideoUrlsInText(doc.rawText);
+                    return explicit.concat(detected);
+                },
+
+                openAndPlayVideo() {
+                    this.showVideoPlayer = !this.showVideoPlayer;
+                    if (this.showVideoPlayer && this.isPlaying) {
+                        // Automatically pause the voice narrator when opening the video player
+                        this.stopAudio();
+                        this.saveBookmark();
+                    }
+                },
+
+                onVideoPlay() {
+                    if (this.isPlaying) {
+                        this.stopAudio();
+                        this.saveBookmark();
+                    }
+                },
+
                 async createAndPlayDocument() {
                     if (!this.isValidNewDoc) return;
                     this.stopAudio();
+
+                    const allVideos = this.newDoc.videos.slice();
+                    if (this.newDoc.videoUrlInput.trim()) {
+                        const manualVid = normalizeVideoObject(this.newDoc.videoUrlInput.trim(), "Attached Video Link");
+                        if (manualVid) allVideos.push(manualVid);
+                    }
 
                     const docObj = {
                         _id: String(Date.now()),
                         title: this.newDoc.title.trim(),
                         author: this.newDoc.author.trim() || "Uploaded Document",
+                        fileType: this.newDoc.fileType || "TEXT",
                         language: this.newDoc.language,
                         currentChapterIndex: 0,
                         currentPageIndex: 0,
                         currentSentenceIndex: 0,
                         createdAt: new Date().toISOString().slice(0, 10),
+                        videos: allVideos,
                         rawText: this.newDoc.rawText.trim()
                     };
 
@@ -929,7 +1341,11 @@
                     this.saveLocalBackup();
                     this.newDoc.title = "";
                     this.newDoc.author = "";
+                    this.newDoc.fileType = "TEXT";
+                    this.newDoc.videoUrlInput = "";
+                    this.newDoc.videos = [];
                     this.newDoc.rawText = "";
+                    this.uploadStatusMsg = "";
                     this.showPasteDrawer = false;
 
                     this.selectDocument(this.documents[0], true);
@@ -941,6 +1357,8 @@
                     this.currentPageIndex = doc.currentPageIndex || 0;
                     this.currentSentenceIndex = doc.currentSentenceIndex || 0;
                     this.selectedLanguage = doc.language || "en-GB";
+                    this.selectedVideoIndex = 0;
+                    this.showVideoPlayer = false;
                     if (autoPlay) {
                         this.speakCurrentSentence();
                     }
@@ -1039,23 +1457,16 @@
                     this.speakCurrentSentence();
                 },
                 advanceToNextSentence(continuePlaying) {
-                    // 1. Move to next sentence on the current page
                     if (this.currentSentenceIndex + 1 < this.currentPageSentences.length) {
                         this.currentSentenceIndex++;
-                    }
-                    // 2. Move to next page in the current chapter
-                    else if (this.currentPageIndex + 1 < this.currentChapterPages.length) {
+                    } else if (this.currentPageIndex + 1 < this.currentChapterPages.length) {
                         this.currentPageIndex++;
                         this.currentSentenceIndex = 0;
-                    }
-                    // 3. Move to next chapter in the book
-                    else if (this.currentChapterIndex + 1 < this.parsedChapters.length) {
+                    } else if (this.currentChapterIndex + 1 < this.parsedChapters.length) {
                         this.currentChapterIndex++;
                         this.currentPageIndex = 0;
                         this.currentSentenceIndex = 0;
-                    }
-                    // 4. Reached the end of the entire book
-                    else {
+                    } else {
                         this.stopAudio();
                         this.saveBookmark();
                         return;
@@ -1177,6 +1588,13 @@
                 currentPageSentences() {
                     return this.currentChapterPages[this.currentPageIndex] || [""];
                 },
+                activeDocVideos() {
+                    if (!this.activeDoc) return [];
+                    return this.docVideosFor(this.activeDoc);
+                },
+                activeVideoObj() {
+                    return this.activeDocVideos[this.selectedVideoIndex] || this.activeDocVideos[0] || null;
+                },
                 filteredVoices() {
                     const prefix = (this.selectedLanguage || "en").split("-")[0].toLowerCase();
                     return this.availableVoices.filter(function(v) {
@@ -1212,7 +1630,7 @@
                     return Math.max(1, Math.round((words * remainingRatio) / wpm));
                 },
                 isValidNewDoc() {
-                    return this.newDoc.title.trim().length >= 2 && this.newDoc.rawText.trim().length >= 10;
+                    return this.newDoc.title.trim().length >= 2 && this.newDoc.rawText.trim().length >= 5;
                 }
             }
         });
