@@ -1,0 +1,1224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VoxPage — Minimalist Document-to-Audiobook Studio</title>
+
+    <!-- Load Font Awesome 4.7 for clean icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+    <!-- Load Vue 3 from the unpkg CDN (Vanilla CST3144 setup) -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+
+    <!-- UI/UX Theme: 2026 "Kuro-Shiro Warm Paper Dark Mode" (ElevenLabs Reader / Audible Minimalist) -->
+    <style>
+        :root {
+            --bg-paper: #141210;
+            --bg-card: #1c1917;
+            --bg-elevated: #24201d;
+            --border-warm: #2e2925;
+            --text-cream: #e7e2dc;
+            --text-muted: #a8a29e;
+            --text-dim: #6b6560;
+            --accent-gold: #d97706;
+            --accent-gold-hover: #f59e0b;
+            --accent-gold-soft: rgba(217, 119, 6, 0.16);
+            --success: #10b981;
+            --danger: #ef4444;
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 16px;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            background-color: var(--bg-paper);
+            color: var(--text-cream);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0;
+            padding: 1.5rem 1.25rem 3.5rem;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .studio-shell {
+            max-width: 1180px;
+            margin: 0 auto;
+        }
+
+        /* Header Navigation */
+        .top-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            padding-bottom: 1.25rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid var(--border-warm);
+        }
+
+        .brand-box {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+        }
+
+        .brand-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #d97706, #b45309);
+            display: grid;
+            place-content: center;
+            color: #fff;
+            font-size: 1.15rem;
+            box-shadow: 0 4px 14px rgba(217, 119, 6, 0.3);
+        }
+
+        .brand-box h1 {
+            margin: 0;
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+        }
+
+        .brand-box p {
+            margin: 0.15rem 0 0;
+            font-size: 0.82rem;
+            color: var(--text-muted);
+        }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-gold {
+            background: var(--accent-gold);
+            color: #fff;
+            border: none;
+            padding: 0.55rem 1.1rem;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.18s ease;
+        }
+
+        .btn-gold:hover:not(:disabled) {
+            background: var(--accent-gold-hover);
+        }
+
+        .btn-gold:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .btn-outline {
+            background: var(--bg-card);
+            color: var(--text-cream);
+            border: 1px solid var(--border-warm);
+            padding: 0.52rem 0.95rem;
+            border-radius: var(--radius-sm);
+            font-weight: 600;
+            font-size: 0.84rem;
+            cursor: pointer;
+            transition: border-color 0.18s ease, background 0.18s ease;
+        }
+
+        .btn-outline:hover:not(:disabled) {
+            border-color: var(--accent-gold);
+            background: var(--bg-elevated);
+        }
+
+        .btn-outline:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        /* Resume Saved Bookmark Banner */
+        .resume-banner {
+            background: var(--accent-gold-soft);
+            border: 1px solid rgba(217, 119, 6, 0.45);
+            border-radius: var(--radius-md);
+            padding: 0.85rem 1.15rem;
+            margin-bottom: 1.35rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.85rem;
+        }
+
+        /* Paste / Upload New Document Drawer */
+        .paste-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-warm);
+            border-radius: var(--radius-lg);
+            padding: 1.35rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .paste-grid {
+            display: grid;
+            grid-template-columns: 1.6fr 1fr 1fr auto;
+            gap: 0.75rem;
+            margin-bottom: 0.85rem;
+            align-items: center;
+        }
+
+        @media (max-width: 860px) {
+            .paste-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .input-warm, .select-warm, .textarea-warm {
+            background: var(--bg-paper);
+            border: 1px solid var(--border-warm);
+            color: var(--text-cream);
+            padding: 0.65rem 0.85rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.88rem;
+            width: 100%;
+            outline: none;
+        }
+
+        .input-warm:focus, .select-warm:focus, .textarea-warm:focus {
+            border-color: var(--accent-gold);
+        }
+
+        .textarea-warm {
+            min-height: 155px;
+            font-family: 'Georgia', serif;
+            line-height: 1.6;
+            resize: vertical;
+        }
+
+        /* Main 2-Column Audiobook Studio Layout */
+        .studio-grid {
+            display: grid;
+            grid-template-columns: 310px 1fr;
+            gap: 1.35rem;
+            align-items: start;
+        }
+
+        @media (max-width: 900px) {
+            .studio-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .sidebar-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-warm);
+            border-radius: var(--radius-lg);
+            padding: 1.1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .section-label {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: var(--text-muted);
+            margin-bottom: 0.45rem;
+        }
+
+        .doc-item, .chapter-item {
+            padding: 0.65rem 0.8rem;
+            border-radius: var(--radius-sm);
+            border: 1px solid transparent;
+            background: var(--bg-paper);
+            cursor: pointer;
+            margin-bottom: 0.45rem;
+            transition: all 0.16s ease;
+        }
+
+        .doc-item:hover, .chapter-item:hover {
+            border-color: var(--border-warm);
+            background: var(--bg-elevated);
+        }
+
+        .doc-item.active, .chapter-item.active {
+            border-color: var(--accent-gold);
+            background: var(--accent-gold-soft);
+        }
+
+        .doc-item-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            font-size: 0.88rem;
+        }
+
+        .doc-item-sub {
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
+        }
+
+        /* Right Column: Reader Page + Audio Player Bar */
+        .reader-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-warm);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        /* Language, Voice & Speed Bar */
+        .controls-toolbar {
+            display: grid;
+            grid-template-columns: 1.2fr 1.4fr 0.8fr 1fr;
+            gap: 0.75rem;
+            padding-bottom: 1.15rem;
+            border-bottom: 1px solid var(--border-warm);
+            align-items: end;
+        }
+
+        @media (max-width: 860px) {
+            .controls-toolbar {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        /* Book Page View */
+        .book-page-header {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .chapter-badge {
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: var(--accent-gold-hover);
+            background: var(--accent-gold-soft);
+            padding: 0.28rem 0.7rem;
+            border-radius: 99px;
+        }
+
+        .book-paper {
+            background: var(--bg-paper);
+            border: 1px solid var(--border-warm);
+            border-radius: var(--radius-md);
+            padding: 1.75rem 2rem;
+            min-height: 270px;
+            font-family: 'Georgia', 'Times New Roman', serif;
+            font-size: 1.15rem;
+            line-height: 1.85;
+            color: var(--text-cream);
+        }
+
+        .sentence-span {
+            padding: 0.15rem 0.3rem;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background 0.15s ease, color 0.15s ease;
+        }
+
+        .sentence-span:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .sentence-span.active-speaking {
+            background: rgba(217, 119, 6, 0.28);
+            color: #fff;
+            box-shadow: 0 0 0 1px rgba(217, 119, 6, 0.55);
+        }
+
+        .sentence-span.already-read {
+            color: var(--text-muted);
+        }
+
+        /* Audio Player Bar */
+        .player-bar {
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-warm);
+            border-radius: var(--radius-md);
+            padding: 1rem 1.25rem;
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .player-buttons {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            flex-wrap: wrap;
+        }
+
+        .btn-play-main {
+            background: var(--accent-gold);
+            color: #fff;
+            border: none;
+            padding: 0.65rem 1.35rem;
+            border-radius: 99px;
+            font-weight: 700;
+            font-size: 0.92rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.35);
+        }
+
+        .btn-play-main:hover {
+            background: var(--accent-gold-hover);
+        }
+
+        .progress-track {
+            width: 100%;
+            height: 7px;
+            background: rgba(255, 255, 255, 0.07);
+            border-radius: 99px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #d97706, #10b981);
+            transition: width 0.25s ease;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="app" class="studio-shell">
+        <!-- Top Header -->
+        <header class="top-header">
+            <div class="brand-box">
+                <div class="brand-icon"><i class="fa fa-headphones" aria-hidden="true"></i></div>
+                <div>
+                    <h1 v-text="sitename"></h1>
+                    <p>Paste or Upload Any Document • Chapter-by-Chapter Multi-Language Audiobook Reader</p>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <span class="chapter-badge">
+                    <i class="fa fa-book"></i> {{ documents.length }} Books in Library
+                </span>
+                <button class="btn-gold" v-on:click="showPasteDrawer = !showPasteDrawer">
+                    <i class="fa" v-bind:class="showPasteDrawer ? 'fa-times' : 'fa-plus'"></i>
+                    {{ showPasteDrawer ? 'Close Document Editor' : 'Paste / Upload New Document' }}
+                </button>
+            </div>
+        </header>
+
+        <!-- Saved Progress Resume Banner (lets user pause, leave, and resume where they stopped) -->
+        <section v-if="activeDoc && hasSavedProgress(activeDoc) && !isPlaying" class="resume-banner">
+            <div>
+                <i class="fa fa-bookmark" style="color: var(--accent-gold-hover); margin-right: 0.5rem;"></i>
+                <strong>Saved Listening Bookmark Found:</strong>
+                <span style="color: var(--text-muted); margin-left: 0.4rem;">
+                    You paused <em>{{ activeDoc.title }}</em> on
+                    <strong>Chapter {{ activeDoc.currentChapterIndex + 1 }}, Page {{ activeDoc.currentPageIndex + 1 }} (Sentence {{ activeDoc.currentSentenceIndex + 1 }})</strong>.
+                </span>
+            </div>
+            <div style="display: flex; gap: 0.55rem;">
+                <button class="btn-gold" v-on:click="resumeFromBookmark">
+                    <i class="fa fa-play"></i> Resume Listening Here
+                </button>
+                <button class="btn-outline" v-on:click="restartFromBeginning">
+                    <i class="fa fa-refresh"></i> Start from Beginning
+                </button>
+            </div>
+        </section>
+
+        <!-- Collapsible Paste or Upload Document Drawer -->
+        <section v-if="showPasteDrawer" class="paste-card">
+            <div class="section-label">Paste Written Document or Upload a .txt / .md File</div>
+            <div class="paste-grid">
+                <input
+                    class="input-warm"
+                    v-model="newDoc.title"
+                    placeholder="Document Title (e.g. Chapter Notes on Cloud Computing)"
+                >
+                <input
+                    class="input-warm"
+                    v-model="newDoc.author"
+                    placeholder="Author / Source (optional)"
+                >
+                <select class="select-warm" v-model="newDoc.language">
+                    <option v-for="lang in languageOptions" v-bind:value="lang.code">
+                        {{ lang.label }}
+                    </option>
+                </select>
+                <label class="btn-outline" style="text-align: center; display: inline-block;">
+                    <i class="fa fa-upload"></i> Upload .txt/.md
+                    <input type="file" accept=".txt,.md" style="display: none;" v-on:change="handleFileUpload">
+                </label>
+            </div>
+
+            <textarea
+                class="textarea-warm"
+                v-model="newDoc.rawText"
+                placeholder="Paste your document here... Tip: Start chapters on a new line with 'Chapter 1: ...', 'Chapter 2: ...' or '# Heading' and VoxPage will automatically organize your chapters and pages!"
+            ></textarea>
+
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.85rem; flex-wrap: wrap; gap: 0.75rem;">
+                <span style="font-size: 0.8rem; color: var(--text-muted);">
+                    Tip: If your pasted text has no "Chapter" headings, VoxPage automatically splits it into logical chapters and pages for you.
+                </span>
+                <button class="btn-gold" v-on:click="createAndPlayDocument" v-bind:disabled="!isValidNewDoc">
+                    <i class="fa fa-magic"></i> Convert to Audiobook & Start Reading
+                </button>
+            </div>
+        </section>
+
+        <!-- Main 2-Column Studio -->
+        <div class="studio-grid" v-if="activeDoc">
+            <!-- Left Sidebar: Document Library & Chapter List -->
+            <aside class="sidebar-card">
+                <div>
+                    <div class="section-label">1. Your Audiobook Library</div>
+                    <input
+                        class="input-warm"
+                        style="margin-bottom: 0.6rem; padding: 0.45rem 0.7rem; font-size: 0.82rem;"
+                        v-model="searchQuery"
+                        placeholder="Search library..."
+                    >
+                    <div
+                        v-for="doc in documents"
+                        class="doc-item"
+                        v-bind:class="{ active: doc._id === activeDoc._id }"
+                        v-on:click="selectDocument(doc)"
+                    >
+                        <div class="doc-item-header">
+                            <span v-text="doc.title"></span>
+                            <button
+                                v-if="documents.length > 1"
+                                class="btn-outline"
+                                style="padding: 0.15rem 0.45rem; font-size: 0.72rem;"
+                                v-on:click.stop="deleteDocument(doc)"
+                                title="Delete book"
+                            >
+                                <i class="fa fa-trash-o"></i>
+                            </button>
+                        </div>
+                        <div class="doc-item-sub">
+                            {{ doc.author || 'Personal Document' }} • {{ doc.language }}
+                            • Ch {{ (doc.currentChapterIndex || 0) + 1 }}, Pg {{ (doc.currentPageIndex || 0) + 1 }}
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Chapter Selector -->
+                <div style="border-top: 1px solid var(--border-warm); padding-top: 0.9rem;">
+                    <div class="section-label">
+                        2. Chapters ({{ parsedChapters.length }})
+                    </div>
+                    <div
+                        v-for="(ch, cIdx) in parsedChapters"
+                        class="chapter-item"
+                        v-bind:class="{ active: cIdx === currentChapterIndex }"
+                        v-on:click="jumpToChapter(cIdx)"
+                    >
+                        <div class="doc-item-header">
+                            <span>{{ ch.title }}</span>
+                            <i v-if="cIdx === currentChapterIndex && isPlaying" class="fa fa-volume-up" style="color: var(--accent-gold-hover);"></i>
+                        </div>
+                        <div class="doc-item-sub">
+                            {{ ch.pages.length }} {{ ch.pages.length === 1 ? 'Page' : 'Pages' }}
+                        </div>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Right Main Panel: Language Controls, Page Jumper, Live Karaoke Page & Audio Player -->
+            <main class="reader-card">
+                <!-- Multi-Language, Voice, Playback Speed & Page Skip Toolbar -->
+                <div class="controls-toolbar">
+                    <div>
+                        <div class="section-label">Listen in Language</div>
+                        <select class="select-warm" v-model="selectedLanguage" v-on:change="onLanguageChange">
+                            <option v-for="lang in languageOptions" v-bind:value="lang.code">
+                                {{ lang.label }}
+                            </option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <div class="section-label">Narrator Voice ({{ filteredVoices.length }} available)</div>
+                        <select class="select-warm" v-model="selectedVoiceURI" v-on:change="onVoiceChange">
+                            <option value="">Default System Voice ({{ selectedLanguage }})</option>
+                            <option v-for="v in filteredVoices" v-bind:value="v.voiceURI">
+                                {{ v.name }} ({{ v.lang }})
+                            </option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <div class="section-label">Reading Speed</div>
+                        <select class="select-warm" v-model.number="playbackRate" v-on:change="onRateChange">
+                            <option v-bind:value="0.75">0.75x (Slow)</option>
+                            <option v-bind:value="1">1.0x (Normal)</option>
+                            <option v-bind:value="1.25">1.25x (Fast)</option>
+                            <option v-bind:value="1.5">1.5x (Study)</option>
+                            <option v-bind:value="2">2.0x (Speed)</option>
+                        </select>
+                    </div>
+
+                    <!-- Skip to Particular Page Selector -->
+                    <div>
+                        <div class="section-label">Skip to Page (1 – {{ currentChapterPages.length }})</div>
+                        <div style="display: flex; gap: 0.4rem;">
+                            <select class="select-warm" v-model.number="currentPageIndex" v-on:change="jumpToPage(currentPageIndex)">
+                                <option v-for="(pg, pIdx) in currentChapterPages" v-bind:value="pIdx">
+                                    Page {{ pIdx + 1 }} of {{ currentChapterPages.length }}
+                                </option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Active Chapter & Page Header -->
+                <div class="book-page-header">
+                    <div>
+                        <span class="chapter-badge">{{ currentChapterObj.title }}</span>
+                        <span style="margin-left: 0.65rem; font-size: 0.85rem; color: var(--text-muted);">
+                            Page {{ currentPageIndex + 1 }} of {{ currentChapterPages.length }}
+                            • ~{{ estimatedMinutesLeft }} min remaining
+                        </span>
+                    </div>
+
+                    <div style="display: flex; gap: 0.45rem;">
+                        <button class="btn-outline" v-on:click="prevPage" v-bind:disabled="currentChapterIndex === 0 && currentPageIndex === 0">
+                            <i class="fa fa-angle-left"></i> Prev Page
+                        </button>
+                        <button class="btn-outline" v-on:click="nextPage" v-bind:disabled="isLastPageOfBook">
+                            Next Page <i class="fa fa-angle-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Warm Paper Page with Interactive Click-any-Sentence Karaoke Highlighting -->
+                <article class="book-paper">
+                    <div style="font-size: 0.78rem; color: var(--text-dim); margin-bottom: 0.85rem; font-family: sans-serif;">
+                        <i class="fa fa-hand-pointer-o"></i> Tip: Click any sentence below to jump the audio narrator directly to that sentence.
+                    </div>
+                    <p style="margin: 0;">
+                        <span
+                            v-for="(sentence, sIdx) in currentPageSentences"
+                            class="sentence-span"
+                            v-bind:class="{
+                                'active-speaking': sIdx === currentSentenceIndex,
+                                'already-read': sIdx < currentSentenceIndex
+                            }"
+                            v-on:click="speakFromSentence(sIdx)"
+                        >
+                            {{ sentence + ' ' }}
+                        </span>
+                    </p>
+                </article>
+
+                <!-- Overall Book Completion Progress Bar -->
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.35rem;">
+                        <span>Book Listening Progress (Auto-Saved)</span>
+                        <strong>{{ bookProgressPercent }}% Complete (Chapter {{ currentChapterIndex + 1 }}/{{ parsedChapters.length }}, Page {{ currentPageIndex + 1 }}/{{ currentChapterPages.length }})</strong>
+                    </div>
+                    <div class="progress-track">
+                        <div class="progress-fill" v-bind:style="{ width: bookProgressPercent + '%' }"></div>
+                    </div>
+                </div>
+
+                <!-- Bottom Audio Transport Control Bar -->
+                <footer class="player-bar">
+                    <div class="player-buttons">
+                        <button class="btn-play-main" v-on:click="togglePlayPause">
+                            <i class="fa" v-bind:class="isPlaying ? 'fa-pause' : 'fa-play'"></i>
+                            {{ isPlaying ? 'Pause & Save Bookmark' : (isPausedMidBook ? 'Resume Audio' : 'Read Aloud') }}
+                        </button>
+
+                        <button class="btn-outline" v-on:click="prevSentence" title="Previous Sentence">
+                            <i class="fa fa-step-backward"></i> Prev Line
+                        </button>
+
+                        <button class="btn-outline" v-on:click="nextSentence" title="Next Sentence">
+                            Next Line <i class="fa fa-step-forward"></i>
+                        </button>
+
+                        <button class="btn-outline" v-on:click="restartFromBeginning" title="Restart Book from Chapter 1, Page 1">
+                            <i class="fa fa-undo"></i> Restart Book
+                        </button>
+                    </div>
+
+                    <div style="font-size: 0.8rem; color: var(--text-muted);">
+                        <span v-if="isPlaying" style="color: var(--accent-gold-hover); font-weight: 600;">
+                            <i class="fa fa-volume-up"></i> Speaking ({{ selectedLanguage }} @ {{ playbackRate }}x)
+                        </span>
+                        <span v-else>
+                            <i class="fa fa-check-circle" style="color: var(--success);"></i> Bookmark saved at Ch {{ currentChapterIndex + 1 }}, Page {{ currentPageIndex + 1 }}
+                        </span>
+                    </div>
+                </footer>
+            </main>
+        </div>
+    </div>
+
+    <script type="module">
+        const BACKEND_URL = "http://localhost:3000";
+        const STORAGE_KEY = "voxpage_docs_v1";
+        const { createApp } = Vue;
+
+        const DEFAULT_DOCUMENTS = [
+            {
+                _id: "673b40010000000000000001",
+                title: "The Art of Full-Stack Engineering",
+                author: "CST3144 Study Guide",
+                language: "en-GB",
+                currentChapterIndex: 0,
+                currentPageIndex: 0,
+                currentSentenceIndex: 0,
+                createdAt: "2026-11-22",
+                rawText: "Chapter 1: The Three-Tier Web Architecture\nModern web applications are divided into three clean layers that work together in harmony. The presentation layer runs in the user's browser using HTML, CSS, and reactive Vue.js components. When a user clicks a button, the browser sends an asynchronous HTTP request using the native Fetch API.\nThe application layer runs on a Node.js and Express.js server that listens for incoming requests. Express middlewares inspect, log, and validate the request before routing it to the right handler. This separation keeps the front-end fast and the back-end secure.\n\nChapter 2: Reactive State with Vue.js\nVue.js eliminates manual DOM manipulation by binding data directly to the HTML template. When a variable inside the data object changes, Vue automatically updates every part of the screen that depends on it. Computed properties derive live totals, progress percentages, and filtered lists without duplicating state.\n\nChapter 3: Document Persistence in MongoDB\nMongoDB stores application data as flexible JSON-like documents inside collections rather than rigid SQL tables. Using the native MongoDB driver, our Express server can query, insert, update, and delete documents in milliseconds. Saving reading progress inside a document allows a listener to pause on any page and resume later from the exact same sentence."
+            },
+            {
+                _id: "673b40010000000000000002",
+                title: "A Short History of Artificial Intelligence",
+                author: "Alan & Ada",
+                language: "en-US",
+                currentChapterIndex: 0,
+                currentPageIndex: 0,
+                currentSentenceIndex: 0,
+                createdAt: "2026-11-22",
+                rawText: "Chapter 1: The Imitation Game\nIn 1950, Alan Turing asked a simple but profound question: can machines think? Rather than debating definitions, he proposed a practical conversational test now known as the Turing Test. Early pioneers believed that symbolic rules and logic would quickly solve human intelligence.\nHowever, the physical world proved far more nuanced than chess boards and algebra theorems. Computers excelled at arithmetic, yet struggled to recognize a human face or understand spoken language.\n\nChapter 2: The Rise of Neural Networks\nInspired by the biological neurons of the human brain, researchers designed layered networks that learn directly from examples. With the arrival of graphics processors and massive datasets, deep learning transformed speech recognition and computer vision. Today, neural voices can read entire books aloud with natural rhythm and warmth."
+            },
+            {
+                _id: "673b40010000000000000003",
+                title: "El Viaje del Lector (Spanish Sample)",
+                author: "Elena Morales",
+                language: "es-ES",
+                currentChapterIndex: 0,
+                currentPageIndex: 0,
+                currentSentenceIndex: 0,
+                createdAt: "2026-11-22",
+                rawText: "Chapter 1: La Biblioteca Nocturna\nLa pequeña lámpara iluminaba las páginas de papel antiguo mientras la lluvia caía suavemente afuera. Escuchar un libro capítulo por capítulo transforma cualquier habitación en un teatro para la imaginación. Cada palabra pronunciada en voz alta construye un puente entre el autor y el oyente.\n\nChapter 2: El Arte de Pausar\nUn buen lector sabe cuándo detenerse para reflexionar sobre una idea importante. Al guardar la página exacta, siempre podemos regresar mañana y continuar la historia desde el mismo lugar."
+            }
+        ];
+
+        function loadSavedDocs() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+                }
+            } catch (e) {}
+            return DEFAULT_DOCUMENTS.slice();
+        }
+
+        // Helper: Splits raw text into structured Chapters -> Pages (3 sentences per page) -> Sentences
+        function parseDocumentIntoChapters(rawText) {
+            const cleaned = String(rawText || "").replace(/\r\n/g, "\n").trim();
+            if (!cleaned) {
+                return [{ title: "Chapter 1", pages: [["No text content found."]] }];
+            }
+
+            const lines = cleaned.split("\n");
+            const rawChapters = [];
+            let currentTitle = "Chapter 1";
+            let currentBuffer = [];
+
+            const headingRegex = /^(chapter\s+\d+|part\s+\d+|section\s+\d+|#{1,3}\s+)(.*)$/i;
+
+            lines.forEach(function(line) {
+                const trimmed = line.trim();
+                if (!trimmed) return;
+                if (headingRegex.test(trimmed)) {
+                    if (currentBuffer.length > 0) {
+                        rawChapters.push({ title: currentTitle, text: currentBuffer.join(" ") });
+                        currentBuffer = [];
+                    }
+                    currentTitle = trimmed.replace(/^#{1,3}\s+/, "");
+                } else {
+                    currentBuffer.push(trimmed);
+                }
+            });
+
+            if (currentBuffer.length > 0) {
+                rawChapters.push({ title: currentTitle, text: currentBuffer.join(" ") });
+            }
+
+            const SENTENCES_PER_PAGE = 3;
+            return rawChapters.map(function(ch) {
+                const sentences = ch.text
+                    .split(/(?<=[.!?])\s+/)
+                    .map(function(s) { return s.trim(); })
+                    .filter(function(s) { return s.length > 0; });
+
+                const pages = [];
+                for (let i = 0; i < sentences.length; i += SENTENCES_PER_PAGE) {
+                    pages.push(sentences.slice(i, i + SENTENCES_PER_PAGE));
+                }
+                if (pages.length === 0) pages.push([ch.text]);
+
+                return {
+                    title: ch.title,
+                    pages: pages
+                };
+            });
+        }
+
+        const voxApp = createApp({
+            data() {
+                const initialDocs = loadSavedDocs();
+                const firstDoc = initialDocs[0];
+                return {
+                    sitename: "VoxPage Audio Studio",
+                    backendOnline: false,
+                    showPasteDrawer: false,
+                    searchQuery: "",
+                    allLocalDocs: initialDocs.slice(),
+                    documents: initialDocs.slice(),
+                    activeDoc: firstDoc,
+                    currentChapterIndex: firstDoc.currentChapterIndex || 0,
+                    currentPageIndex: firstDoc.currentPageIndex || 0,
+                    currentSentenceIndex: firstDoc.currentSentenceIndex || 0,
+                    selectedLanguage: firstDoc.language || "en-GB",
+                    selectedVoiceURI: "",
+                    playbackRate: 1,
+                    isPlaying: false,
+                    availableVoices: [],
+                    languageOptions: [
+                        { code: "en-GB", label: "English (UK - en-GB)" },
+                        { code: "en-US", label: "English (US - en-US)" },
+                        { code: "es-ES", label: "Spanish (Español - es-ES)" },
+                        { code: "fr-FR", label: "French (Français - fr-FR)" },
+                        { code: "de-DE", label: "German (Deutsch - de-DE)" },
+                        { code: "ar-SA", label: "Arabic (العربية - ar-SA)" },
+                        { code: "pt-BR", label: "Portuguese (Português - pt-BR)" },
+                        { code: "it-IT", label: "Italian (Italiano - it-IT)" },
+                        { code: "hi-IN", label: "Hindi (हिन्दी - hi-IN)" },
+                        { code: "zh-CN", label: "Chinese (中文 - zh-CN)" }
+                    ],
+                    newDoc: {
+                        title: "",
+                        author: "",
+                        language: "en-GB",
+                        rawText: ""
+                    }
+                };
+            },
+            created() {
+                this.fetchDocuments();
+                this.initSpeechVoices();
+            },
+            watch: {
+                searchQuery: "searchDocuments"
+            },
+            methods: {
+                initSpeechVoices() {
+                    if (!("speechSynthesis" in window)) return;
+                    const loadVoices = () => {
+                        this.availableVoices = window.speechSynthesis.getVoices() || [];
+                    };
+                    loadVoices();
+                    window.speechSynthesis.onvoiceschanged = loadVoices;
+                },
+                saveLocalBackup() {
+                    try {
+                        localStorage.setItem(STORAGE_KEY, JSON.stringify(this.allLocalDocs));
+                    } catch (e) {}
+                },
+                async fetchDocuments() {
+                    try {
+                        const response = await fetch(BACKEND_URL + "/documents");
+                        if (response.ok) {
+                            this.documents = await response.json();
+                            this.allLocalDocs = this.documents.slice();
+                            this.backendOnline = true;
+                            if (this.documents.length > 0) {
+                                this.selectDocument(this.documents[0], false);
+                            }
+                            this.saveLocalBackup();
+                        }
+                    } catch (err) {
+                        this.backendOnline = false;
+                        this.documents = this.allLocalDocs.slice();
+                    }
+                },
+                async searchDocuments() {
+                    const q = this.searchQuery.toLowerCase();
+                    if (this.backendOnline) {
+                        try {
+                            const response = await fetch(BACKEND_URL + "/search?q=" + encodeURIComponent(this.searchQuery));
+                            if (response.ok) {
+                                this.documents = await response.json();
+                                return;
+                            }
+                        } catch (err) {
+                            this.backendOnline = false;
+                        }
+                    }
+                    this.documents = this.allLocalDocs.filter(function(d) {
+                        return String(d.title).toLowerCase().includes(q) ||
+                               String(d.author).toLowerCase().includes(q) ||
+                               String(d.rawText).toLowerCase().includes(q);
+                    });
+                },
+                // Handles uploading a .txt or .md file from the user's computer using FileReader
+                handleFileUpload(event) {
+                    const file = event.target.files && event.target.files[0];
+                    if (!file) return;
+                    if (!this.newDoc.title) {
+                        this.newDoc.title = file.name.replace(/\.(txt|md)$/i, "");
+                    }
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        this.newDoc.rawText = String(e.target.result || "");
+                    };
+                    reader.readAsText(file);
+                },
+                async createAndPlayDocument() {
+                    if (!this.isValidNewDoc) return;
+                    this.stopAudio();
+
+                    const docObj = {
+                        _id: String(Date.now()),
+                        title: this.newDoc.title.trim(),
+                        author: this.newDoc.author.trim() || "Uploaded Document",
+                        language: this.newDoc.language,
+                        currentChapterIndex: 0,
+                        currentPageIndex: 0,
+                        currentSentenceIndex: 0,
+                        createdAt: new Date().toISOString().slice(0, 10),
+                        rawText: this.newDoc.rawText.trim()
+                    };
+
+                    if (this.backendOnline) {
+                        try {
+                            await fetch(BACKEND_URL + "/documents", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(docObj)
+                            });
+                            await this.fetchDocuments();
+                        } catch (err) {
+                            this.backendOnline = false;
+                            this.allLocalDocs.unshift(docObj);
+                            this.documents = this.allLocalDocs.slice();
+                        }
+                    } else {
+                        this.allLocalDocs.unshift(docObj);
+                        this.documents = this.allLocalDocs.slice();
+                    }
+
+                    this.saveLocalBackup();
+                    this.newDoc.title = "";
+                    this.newDoc.author = "";
+                    this.newDoc.rawText = "";
+                    this.showPasteDrawer = false;
+
+                    this.selectDocument(this.documents[0], true);
+                },
+                selectDocument(doc, autoPlay = false) {
+                    this.stopAudio();
+                    this.activeDoc = doc;
+                    this.currentChapterIndex = doc.currentChapterIndex || 0;
+                    this.currentPageIndex = doc.currentPageIndex || 0;
+                    this.currentSentenceIndex = doc.currentSentenceIndex || 0;
+                    this.selectedLanguage = doc.language || "en-GB";
+                    if (autoPlay) {
+                        this.speakCurrentSentence();
+                    }
+                },
+                hasSavedProgress(doc) {
+                    return (doc.currentChapterIndex || 0) > 0 ||
+                           (doc.currentPageIndex || 0) > 0 ||
+                           (doc.currentSentenceIndex || 0) > 0;
+                },
+                async saveBookmark() {
+                    if (!this.activeDoc) return;
+                    const updates = {
+                        currentChapterIndex: this.currentChapterIndex,
+                        currentPageIndex: this.currentPageIndex,
+                        currentSentenceIndex: this.currentSentenceIndex,
+                        language: this.selectedLanguage
+                    };
+                    Object.assign(this.activeDoc, updates);
+                    this.saveLocalBackup();
+
+                    if (this.backendOnline) {
+                        try {
+                            await fetch(BACKEND_URL + "/documents/" + this.activeDoc._id, {
+                                method: "PUT",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify(updates)
+                            });
+                        } catch (err) {
+                            this.backendOnline = false;
+                        }
+                    }
+                },
+                // Core Web Speech API Narrator Engine
+                speakCurrentSentence() {
+                    if (!("speechSynthesis" in window)) return;
+                    window.speechSynthesis.cancel();
+
+                    const sentence = this.currentPageSentences[this.currentSentenceIndex];
+                    if (!sentence) {
+                        this.isPlaying = false;
+                        return;
+                    }
+
+                    const utterance = new SpeechSynthesisUtterance(sentence);
+                    utterance.lang = this.selectedLanguage;
+                    utterance.rate = this.playbackRate;
+
+                    if (this.selectedVoiceURI) {
+                        const matchedVoice = this.availableVoices.find((v) => v.voiceURI === this.selectedVoiceURI);
+                        if (matchedVoice) utterance.voice = matchedVoice;
+                    } else if (this.filteredVoices.length > 0) {
+                        utterance.voice = this.filteredVoices[0];
+                    }
+
+                    utterance.onend = () => {
+                        if (!this.isPlaying) return;
+                        this.advanceToNextSentence(true);
+                    };
+
+                    utterance.onerror = () => {
+                        this.isPlaying = false;
+                    };
+
+                    this.isPlaying = true;
+                    this.saveBookmark();
+                    window.speechSynthesis.speak(utterance);
+                },
+                stopAudio() {
+                    this.isPlaying = false;
+                    if ("speechSynthesis" in window) {
+                        window.speechSynthesis.cancel();
+                    }
+                },
+                togglePlayPause() {
+                    if (this.isPlaying) {
+                        this.stopAudio();
+                        this.saveBookmark();
+                    } else {
+                        this.speakCurrentSentence();
+                    }
+                },
+                resumeFromBookmark() {
+                    this.speakCurrentSentence();
+                },
+                restartFromBeginning() {
+                    const wasPlaying = this.isPlaying;
+                    this.stopAudio();
+                    this.currentChapterIndex = 0;
+                    this.currentPageIndex = 0;
+                    this.currentSentenceIndex = 0;
+                    this.saveBookmark();
+                    if (wasPlaying) this.speakCurrentSentence();
+                },
+                speakFromSentence(sIdx) {
+                    this.currentSentenceIndex = sIdx;
+                    this.speakCurrentSentence();
+                },
+                advanceToNextSentence(continuePlaying) {
+                    // 1. Move to next sentence on the current page
+                    if (this.currentSentenceIndex + 1 < this.currentPageSentences.length) {
+                        this.currentSentenceIndex++;
+                    }
+                    // 2. Move to next page in the current chapter
+                    else if (this.currentPageIndex + 1 < this.currentChapterPages.length) {
+                        this.currentPageIndex++;
+                        this.currentSentenceIndex = 0;
+                    }
+                    // 3. Move to next chapter in the book
+                    else if (this.currentChapterIndex + 1 < this.parsedChapters.length) {
+                        this.currentChapterIndex++;
+                        this.currentPageIndex = 0;
+                        this.currentSentenceIndex = 0;
+                    }
+                    // 4. Reached the end of the entire book
+                    else {
+                        this.stopAudio();
+                        this.saveBookmark();
+                        return;
+                    }
+
+                    this.saveBookmark();
+                    if (continuePlaying) {
+                        this.speakCurrentSentence();
+                    }
+                },
+                nextSentence() {
+                    const wasPlaying = this.isPlaying;
+                    this.stopAudio();
+                    this.advanceToNextSentence(wasPlaying);
+                },
+                prevSentence() {
+                    const wasPlaying = this.isPlaying;
+                    this.stopAudio();
+                    if (this.currentSentenceIndex > 0) {
+                        this.currentSentenceIndex--;
+                    } else if (this.currentPageIndex > 0) {
+                        this.currentPageIndex--;
+                        this.currentSentenceIndex = Math.max(0, this.currentPageSentences.length - 1);
+                    } else if (this.currentChapterIndex > 0) {
+                        this.currentChapterIndex--;
+                        this.currentPageIndex = Math.max(0, this.currentChapterPages.length - 1);
+                        this.currentSentenceIndex = 0;
+                    }
+                    this.saveBookmark();
+                    if (wasPlaying) this.speakCurrentSentence();
+                },
+                jumpToChapter(cIdx) {
+                    const wasPlaying = this.isPlaying;
+                    this.stopAudio();
+                    this.currentChapterIndex = cIdx;
+                    this.currentPageIndex = 0;
+                    this.currentSentenceIndex = 0;
+                    this.saveBookmark();
+                    if (wasPlaying) this.speakCurrentSentence();
+                },
+                jumpToPage(pIdx) {
+                    const wasPlaying = this.isPlaying;
+                    this.stopAudio();
+                    this.currentPageIndex = Number(pIdx);
+                    this.currentSentenceIndex = 0;
+                    this.saveBookmark();
+                    if (wasPlaying) this.speakCurrentSentence();
+                },
+                nextPage() {
+                    const wasPlaying = this.isPlaying;
+                    this.stopAudio();
+                    if (this.currentPageIndex + 1 < this.currentChapterPages.length) {
+                        this.currentPageIndex++;
+                        this.currentSentenceIndex = 0;
+                    } else if (this.currentChapterIndex + 1 < this.parsedChapters.length) {
+                        this.currentChapterIndex++;
+                        this.currentPageIndex = 0;
+                        this.currentSentenceIndex = 0;
+                    }
+                    this.saveBookmark();
+                    if (wasPlaying) this.speakCurrentSentence();
+                },
+                prevPage() {
+                    const wasPlaying = this.isPlaying;
+                    this.stopAudio();
+                    if (this.currentPageIndex > 0) {
+                        this.currentPageIndex--;
+                        this.currentSentenceIndex = 0;
+                    } else if (this.currentChapterIndex > 0) {
+                        this.currentChapterIndex--;
+                        this.currentPageIndex = Math.max(0, this.currentChapterPages.length - 1);
+                        this.currentSentenceIndex = 0;
+                    }
+                    this.saveBookmark();
+                    if (wasPlaying) this.speakCurrentSentence();
+                },
+                onLanguageChange() {
+                    this.selectedVoiceURI = "";
+                    this.saveBookmark();
+                    if (this.isPlaying) this.speakCurrentSentence();
+                },
+                onVoiceChange() {
+                    if (this.isPlaying) this.speakCurrentSentence();
+                },
+                onRateChange() {
+                    if (this.isPlaying) this.speakCurrentSentence();
+                },
+                async deleteDocument(doc) {
+                    if (this.documents.length <= 1) return;
+                    this.stopAudio();
+                    const idToRemove = doc._id;
+                    this.allLocalDocs = this.allLocalDocs.filter((d) => d._id !== idToRemove);
+                    this.documents = this.documents.filter((d) => d._id !== idToRemove);
+                    if (this.activeDoc && this.activeDoc._id === idToRemove) {
+                        this.selectDocument(this.documents[0], false);
+                    }
+                    this.saveLocalBackup();
+
+                    if (this.backendOnline) {
+                        try {
+                            await fetch(BACKEND_URL + "/documents/" + idToRemove, { method: "DELETE" });
+                        } catch (err) {
+                            this.backendOnline = false;
+                        }
+                    }
+                }
+            },
+            computed: {
+                parsedChapters() {
+                    if (!this.activeDoc) return [];
+                    return parseDocumentIntoChapters(this.activeDoc.rawText);
+                },
+                currentChapterObj() {
+                    return this.parsedChapters[this.currentChapterIndex] || { title: "Chapter 1", pages: [[""]] };
+                },
+                currentChapterPages() {
+                    return this.currentChapterObj.pages || [[""]];
+                },
+                currentPageSentences() {
+                    return this.currentChapterPages[this.currentPageIndex] || [""];
+                },
+                filteredVoices() {
+                    const prefix = (this.selectedLanguage || "en").split("-")[0].toLowerCase();
+                    return this.availableVoices.filter(function(v) {
+                        return String(v.lang).toLowerCase().startsWith(prefix);
+                    });
+                },
+                isLastPageOfBook() {
+                    return this.currentChapterIndex >= this.parsedChapters.length - 1 &&
+                           this.currentPageIndex >= this.currentChapterPages.length - 1;
+                },
+                isPausedMidBook() {
+                    return this.currentChapterIndex > 0 || this.currentPageIndex > 0 || this.currentSentenceIndex > 0;
+                },
+                bookProgressPercent() {
+                    let totalPages = 0;
+                    let completedPages = 0;
+                    this.parsedChapters.forEach((ch, cIdx) => {
+                        totalPages += ch.pages.length;
+                        if (cIdx < this.currentChapterIndex) {
+                            completedPages += ch.pages.length;
+                        } else if (cIdx === this.currentChapterIndex) {
+                            completedPages += this.currentPageIndex;
+                        }
+                    });
+                    if (totalPages <= 1) return 100;
+                    return Math.min(100, Math.round(((completedPages + 1) / totalPages) * 100));
+                },
+                estimatedMinutesLeft() {
+                    if (!this.activeDoc) return 1;
+                    const words = String(this.activeDoc.rawText || "").split(/\s+/).length;
+                    const remainingRatio = Math.max(0.1, (100 - this.bookProgressPercent) / 100);
+                    const wpm = 155 * (this.playbackRate || 1);
+                    return Math.max(1, Math.round((words * remainingRatio) / wpm));
+                },
+                isValidNewDoc() {
+                    return this.newDoc.title.trim().length >= 2 && this.newDoc.rawText.trim().length >= 10;
+                }
+            }
+        });
+
+        voxApp.mount("#app");
+    </script>
+
+</body>
+</html>
