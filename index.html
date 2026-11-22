@@ -313,8 +313,8 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding-bottom: 0.85rem;
-            margin-bottom: 0.85rem;
+            padding-bottom: 0.75rem;
+            margin-bottom: 0.75rem;
             border-bottom: 1px solid var(--border-warm);
         }
 
@@ -341,7 +341,7 @@
         }
 
         .toc-chapter-block {
-            margin-bottom: 0.65rem;
+            margin-bottom: 0.6rem;
             border: 1px solid var(--border-warm);
             border-radius: var(--radius-sm);
             background: var(--bg-paper);
@@ -354,7 +354,7 @@
         }
 
         .toc-chapter-row {
-            padding: 0.72rem 0.85rem;
+            padding: 0.7rem 0.85rem;
             cursor: pointer;
             display: flex;
             justify-content: space-between;
@@ -386,7 +386,7 @@
             border: 1px solid var(--border-warm);
             display: grid;
             place-content: center;
-            font-size: 0.74rem;
+            font-size: 0.73rem;
             font-weight: 700;
             color: var(--text-muted);
             flex-shrink: 0;
@@ -405,7 +405,7 @@
         }
 
         .toc-chapter-title {
-            font-size: 0.86rem;
+            font-size: 0.85rem;
             font-weight: 600;
             color: var(--text-cream);
             line-height: 1.35;
@@ -419,7 +419,7 @@
             flex-shrink: 0;
         }
 
-        /* Nested Sub-Pages inside each TOC Entry */
+        /* Nested Sub-Pages inside each TOC Entry (shown for active or expanded chapter) */
         .toc-subpages {
             border-top: 1px solid var(--border-warm);
             background: rgba(0, 0, 0, 0.18);
@@ -427,6 +427,8 @@
             display: flex;
             flex-direction: column;
             gap: 0.25rem;
+            max-height: 210px;
+            overflow-y: auto;
         }
 
         .toc-subpage-row {
@@ -500,15 +502,22 @@
             margin-top: 0.85rem;
             border-radius: var(--radius-sm);
             overflow: hidden;
-            background: #000;
+            background: #0d0c0b;
             border: 1px solid var(--border-warm);
         }
 
         .video-stage video, .video-stage iframe {
             width: 100%;
-            max-height: 360px;
+            max-height: 380px;
             display: block;
             border: none;
+        }
+
+        .video-fallback-box {
+            padding: 1.65rem 1.25rem;
+            text-align: center;
+            color: var(--text-cream);
+            background: var(--bg-elevated);
         }
 
         /* Book Page View */
@@ -636,6 +645,10 @@
                     v-model="searchQuery"
                     placeholder="Search library..."
                 >
+                <label class="btn-outline" style="cursor: pointer;" title="Attach or play a video file in the current document">
+                    <i class="fa fa-video-camera"></i> + Add Video to Current Book
+                    <input type="file" accept="video/*,.mp4,.webm,.ogg,.mov" style="display: none;" v-on:change="attachVideoToActiveDoc">
+                </label>
                 <button class="btn-gold" v-on:click="showPasteDrawer = !showPasteDrawer">
                     <i class="fa" v-bind:class="showPasteDrawer ? 'fa-times' : 'fa-plus'"></i>
                     {{ showPasteDrawer ? 'Close Importer' : '+ Import Document' }}
@@ -659,7 +672,7 @@
                     <div class="book-pill-meta">
                         {{ doc.author || 'Document' }} • {{ doc.fileType || 'DOC' }} • {{ doc.language }}
                         <span v-if="docVideosFor(doc).length > 0" style="color: var(--accent-gold-hover);">
-                            • <i class="fa fa-video-camera"></i> Video
+                            • <i class="fa fa-video-camera"></i> {{ docVideosFor(doc).length }} Video
                         </span>
                     </div>
                 </div>
@@ -732,7 +745,7 @@
                         <i class="fa fa-video-camera"></i> + Attach Video File
                         <input
                             type="file"
-                            accept="video/*"
+                            accept="video/*,.mp4,.webm,.ogg,.mov"
                             style="display: none;"
                             v-on:change="handleExtraVideoUpload"
                         >
@@ -759,13 +772,13 @@
                 <input
                     class="input-warm"
                     v-model="newDoc.videoUrlInput"
-                    placeholder="Optional Embedded Video URL (.mp4 or YouTube)"
+                    placeholder="Optional Video URL (.mp4, YouTube, Vimeo)"
                 >
             </div>
 
             <div v-if="newDoc.videos.length > 0" style="margin-bottom: 0.75rem; font-size: 0.82rem; color: var(--success);">
                 <i class="fa fa-film"></i>
-                <strong>{{ newDoc.videos.length }} Embedded Video(s) Attached:</strong>
+                <strong>{{ newDoc.videos.length }} Video(s) Attached:</strong>
                 <span v-for="(v, idx) in newDoc.videos" style="margin-left: 0.5rem;" class="format-pill">
                     {{ idx + 1 }}. {{ v.title }}
                 </span>
@@ -799,9 +812,18 @@
                     <span class="chapter-badge">{{ bookProgressPercent }}%</span>
                 </div>
 
+                <!-- Filter Table of Contents if book has many chapters -->
+                <input
+                    v-if="tableOfContents.length > 6"
+                    class="input-warm"
+                    style="margin-bottom: 0.75rem; padding: 0.42rem 0.7rem; font-size: 0.8rem;"
+                    v-model="tocFilterQuery"
+                    placeholder="Jump to chapter or topic in TOC..."
+                >
+
                 <!-- Exact Table of Contents Entries -->
                 <div
-                    v-for="tocItem in tableOfContents"
+                    v-for="tocItem in filteredTableOfContents"
                     class="toc-chapter-block"
                     v-bind:class="{
                         active: tocItem.chapterIndex === currentChapterIndex,
@@ -823,8 +845,8 @@
                         </span>
                     </div>
 
-                    <!-- Exact Sub-Pages inside each Table of Contents Chapter (click any page to play from there) -->
-                    <div class="toc-subpages">
+                    <!-- Sub-Pages inside the active (or searched) Table of Contents section -->
+                    <div v-if="tocItem.chapterIndex === currentChapterIndex || tocFilterQuery.trim().length > 0 || tableOfContents.length <= 12" class="toc-subpages">
                         <div
                             v-for="sub in tocItem.subPages"
                             class="toc-subpage-row"
@@ -892,7 +914,7 @@
                     </div>
                 </div>
 
-                <!-- Embedded / Attached Video Player Section (Shown automatically when a document contains video media) -->
+                <!-- Embedded / Attached Video Player Section -->
                 <section v-if="activeDocVideos.length > 0" class="video-theater-card">
                     <div class="video-theater-header">
                         <div>
@@ -909,34 +931,89 @@
                                 class="select-warm"
                                 style="width: auto; padding: 0.35rem 0.65rem; font-size: 0.8rem;"
                                 v-model.number="selectedVideoIndex"
+                                v-on:change="videoPlaybackError = false"
                             >
                                 <option v-for="(v, vIdx) in activeDocVideos" v-bind:value="vIdx">
                                     Video {{ vIdx + 1 }}: {{ v.title }}
                                 </option>
                             </select>
 
+                            <label class="btn-outline" style="padding: 0.38rem 0.75rem; font-size: 0.78rem; cursor: pointer;" title="Load or replace with a local MP4/WebM video file">
+                                <i class="fa fa-upload"></i> Load Local Video
+                                <input type="file" accept="video/*,.mp4,.webm,.ogg,.mov" style="display: none;" v-on:change="replaceActiveVideoWithFile">
+                            </label>
+
                             <button class="btn-gold" style="padding: 0.42rem 0.85rem; font-size: 0.8rem;" v-on:click="openAndPlayVideo">
                                 <i class="fa" v-bind:class="showVideoPlayer ? 'fa-eye-slash' : 'fa-play-circle'"></i>
                                 {{ showVideoPlayer ? 'Close Video' : 'Play Video' }}
+                            </button>
+
+                            <button
+                                class="btn-outline"
+                                style="padding: 0.38rem 0.65rem; font-size: 0.78rem;"
+                                v-on:click="removeActiveVideo"
+                                title="Remove this video entry"
+                            >
+                                <i class="fa fa-times"></i>
                             </button>
                         </div>
                     </div>
 
                     <div v-if="showVideoPlayer && activeVideoObj" class="video-stage">
+                        <!-- Case 1: YouTube / Vimeo / Web Embed iframe -->
                         <iframe
                             v-if="activeVideoObj.kind === 'iframe'"
                             v-bind:src="activeVideoObj.url"
-                            height="340"
+                            height="350"
                             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                             allowfullscreen
                         ></iframe>
+
+                        <!-- Case 2: Direct HTML5 Video (.mp4, .webm, .ogg, blob:) with automatic error recovery -->
                         <video
-                            v-else
+                            v-else-if="!videoPlaybackError"
                             ref="docVideoPlayer"
-                            v-bind:src="activeVideoObj.url"
+                            v-bind:key="activeVideoObj.url"
                             controls
+                            playsinline
+                            preload="metadata"
                             v-on:play="onVideoPlay"
-                        ></video>
+                            v-on:error="onVideoError"
+                        >
+                            <source v-bind:src="activeVideoObj.url" v-bind:type="activeVideoObj.mime || 'video/mp4'">
+                            <source v-bind:src="activeVideoObj.url" type="video/webm">
+                            <source v-bind:src="activeVideoObj.url" type="video/ogg">
+                        </video>
+
+                        <!-- Case 3: Graceful Recovery Box if a PDF link is an external webpage or an expired session blob -->
+                        <div v-else class="video-fallback-box">
+                            <i class="fa fa-film" style="font-size: 1.6rem; color: var(--accent-gold-hover); margin-bottom: 0.5rem;"></i>
+                            <div style="font-weight: 600; font-size: 0.92rem; margin-bottom: 0.35rem;">
+                                External or Session Video Link ({{ activeVideoObj.title }})
+                            </div>
+                            <div style="font-size: 0.8rem; color: var(--text-muted); max-width: 520px; margin: 0 auto 0.9rem;">
+                                This link points to an external web page or a local file from a previous browser session. You can open the external link directly or select a local video file (.mp4 / .webm) to play here:
+                            </div>
+                            <div style="display: flex; justify-content: center; gap: 0.65rem; flex-wrap: wrap;">
+                                <a
+                                    v-if="activeVideoObj.url && activeVideoObj.url.startsWith('http')"
+                                    v-bind:href="activeVideoObj.url"
+                                    target="_blank"
+                                    rel="noopener"
+                                    class="btn-gold"
+                                    style="text-decoration: none;"
+                                >
+                                    <i class="fa fa-external-link"></i> Open External Video Link
+                                </a>
+                                <label class="btn-outline" style="cursor: pointer;">
+                                    <i class="fa fa-folder-open"></i> Select Local Video File (.mp4 / .webm)
+                                    <input type="file" accept="video/*,.mp4,.webm,.ogg,.mov" style="display: none;" v-on:change="replaceActiveVideoWithFile">
+                                </label>
+                                <button class="btn-outline" v-on:click="removeActiveVideo">
+                                    <i class="fa fa-trash-o"></i> Remove Broken Link
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </section>
 
@@ -1074,49 +1151,109 @@
             }
         ];
 
-        function loadSavedDocs() {
-            try {
-                const raw = localStorage.getItem(STORAGE_KEY);
-                if (raw) {
-                    const parsed = JSON.parse(raw);
-                    if (Array.isArray(parsed) && parsed.length > 0) return parsed;
-                }
-            } catch (e) {}
-            return DEFAULT_DOCUMENTS.slice();
-        }
-
-        function normalizeVideoObject(url, customTitle) {
+        // Strictly validates & normalizes only genuine video streams (.mp4, .webm, .ogg, blob:) or embeddable video platforms (YouTube, Vimeo, Loom)
+        function normalizeVideoObject(url, customTitle, explicitMime) {
             const clean = String(url || "").trim();
             if (!clean) return null;
 
-            const ytMatch = clean.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{6,})/i);
+            // 1. YouTube (watch?v=, youtu.be/, shorts/, embed/, live/)
+            const ytMatch = clean.match(/(?:youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/i);
             if (ytMatch) {
                 return {
-                    title: customTitle || "Embedded Video",
-                    url: "https://www.youtube.com/embed/" + ytMatch[1],
+                    title: customTitle || "YouTube Video",
+                    url: "https://www.youtube-nocookie.com/embed/" + ytMatch[1],
                     kind: "iframe"
                 };
             }
-            return {
-                title: customTitle || "Document Video",
-                url: clean,
-                kind: "video"
-            };
+
+            // 2. Vimeo
+            const vimeoMatch = clean.match(/vimeo\.com\/(?:video\/)?(\d{6,})/i);
+            if (vimeoMatch) {
+                return {
+                    title: customTitle || "Vimeo Video",
+                    url: "https://player.vimeo.com/video/" + vimeoMatch[1],
+                    kind: "iframe"
+                };
+            }
+
+            // 3. Loom
+            const loomMatch = clean.match(/loom\.com\/(?:share|embed)\/([a-f0-9]{20,})/i);
+            if (loomMatch) {
+                return {
+                    title: customTitle || "Loom Video",
+                    url: "https://www.loom.com/embed/" + loomMatch[1],
+                    kind: "iframe"
+                };
+            }
+
+            // 4. Local Blob / Data URI
+            if (clean.startsWith("blob:") || clean.startsWith("data:video/")) {
+                return {
+                    title: customTitle || "Attached Video File",
+                    url: clean,
+                    mime: explicitMime || "video/mp4",
+                    kind: "video"
+                };
+            }
+
+            // 5. Direct Video File URL ending strictly in .mp4, .webm, .ogg, .ogv, .m4v
+            const directMatch = clean.match(/^https?:\/\/[^\s"'<>]+\.(mp4|webm|ogg|ogv|m4v)(?:\?[^\s"'<>]*)?$/i);
+            if (directMatch) {
+                const ext = directMatch[1].toLowerCase();
+                const mime = ext === "webm" ? "video/webm" : (ext === "ogg" || ext === "ogv" ? "video/ogg" : "video/mp4");
+                return {
+                    title: customTitle || "Direct Video Stream",
+                    url: clean,
+                    mime: explicitMime || mime,
+                    kind: "video"
+                };
+            }
+
+            return null;
         }
 
         function detectVideoUrlsInText(text) {
             const found = [];
             const seen = {};
-            const regex = /https?:\/\/[^\s"'<>]+(?:\.(?:mp4|webm|ogg|mov)|youtube\.com\/watch\?v=[A-Za-z0-9_-]+|youtu\.be\/[A-Za-z0-9_-]+)/gi;
+            const regex = /https?:\/\/[^\s"'<>)]+/gi;
             const matches = String(text || "").match(regex) || [];
-            matches.forEach(function(url, idx) {
-                if (!seen[url]) {
-                    seen[url] = true;
-                    const obj = normalizeVideoObject(url, "Document Video " + (idx + 1));
-                    if (obj) found.push(obj);
+            matches.forEach(function(rawUrl) {
+                const cleanUrl = rawUrl.replace(/[.,;!?]+$/, "");
+                if (!seen[cleanUrl]) {
+                    const obj = normalizeVideoObject(cleanUrl, "Document Video");
+                    if (obj) {
+                        seen[cleanUrl] = true;
+                        found.push(obj);
+                    }
                 }
             });
             return found;
+        }
+
+        function loadSavedDocs() {
+            try {
+                const raw = localStorage.getItem(STORAGE_KEY);
+                if (raw) {
+                    const parsed = JSON.parse(raw);
+                    if (Array.isArray(parsed) && parsed.length > 0) {
+                        // Sanitize any false-positive or non-playable video links stored from earlier sessions
+                        parsed.forEach(function(doc) {
+                            if (Array.isArray(doc.videos)) {
+                                doc.videos = doc.videos
+                                    .map(function(v) {
+                                        if (!v || !v.url) return null;
+                                        return normalizeVideoObject(v.url, v.title, v.mime);
+                                    })
+                                    .filter(Boolean);
+                            } else {
+                                doc.videos = [];
+                            }
+                        });
+                        return parsed;
+                    }
+                }
+            } catch (e) {}
+            return DEFAULT_DOCUMENTS.slice();
         }
 
         async function extractEmbeddedVideosFromZip(zip, sourceLabel) {
@@ -1124,7 +1261,7 @@
             const entries = Object.keys(zip.files);
             for (let i = 0; i < entries.length; i++) {
                 const filePath = entries[i];
-                if (/\.(mp4|webm|ogg|mov)$/i.test(filePath)) {
+                if (/\.(mp4|webm|ogg|mov|m4v)$/i.test(filePath)) {
                     const fileEntry = zip.files[filePath];
                     const ext = filePath.split(".").pop().toLowerCase();
                     const mime = ext === "webm" ? "video/webm" : (ext === "ogg" ? "video/ogg" : "video/mp4");
@@ -1135,6 +1272,7 @@
                     extractedVideos.push({
                         title: sourceLabel + " Video (" + baseName + ")",
                         url: blobUrl,
+                        mime: mime,
                         kind: "video"
                     });
                 }
@@ -1142,7 +1280,7 @@
             return extractedVideos;
         }
 
-        // Extracts exact Table of Contents headings (Chapters, Capítulos, Parts, Sections, Slides, PDF Pages, Markdown headings)
+        // Extracts exact Table of Contents headings (Chapters, Parts, Sections, Slides, or PDF Outline headings)
         function parseDocumentIntoChapters(rawText) {
             const cleaned = String(rawText || "").replace(/\r\n/g, "\n").trim();
             if (!cleaned) {
@@ -1154,18 +1292,30 @@
             let currentTitle = "Chapter 1";
             let currentBuffer = [];
 
-            const headingRegex = /^(chapter\s+\d+|cap[íi]tulo\s+\d+|chapitre\s+\d+|slide\s+\d+|pdf\s+page\s+\d+|part\s+\d+|section\s+\d+|\d+\.\s+[A-Z]|#{1,3}\s+)(.*)$/i;
+            const headingRegex = /^(chapter\s+\d+|cap[íi]tulo\s+\d+|chapitre\s+\d+|part\s+(?:[ivxlcdm]+|\d+)|section\s+\d+|slide\s+\d+|appendix\s+[a-z0-9]+|#{1,3}\s+)(.*)$/i;
+            const pdfPageRegex = /^pdf\s+page\s+\d+$/i;
+
+            // Check if the document has real Chapter / Part headings (if so, group across PDF pages into real book chapters!)
+            const hasRealBookChapters = lines.some(function(l) {
+                return headingRegex.test(l.trim()) && l.trim().length <= 95;
+            });
 
             lines.forEach(function(line) {
                 const trimmed = line.trim();
                 if (!trimmed) return;
-                if (headingRegex.test(trimmed) && trimmed.length <= 95) {
+                // Skip watermark lines
+                if (/^oceanofpdf\.com$/i.test(trimmed)) return;
+
+                const isRealHeading = headingRegex.test(trimmed) && trimmed.length <= 95;
+                const isPdfPageMarker = !hasRealBookChapters && pdfPageRegex.test(trimmed);
+
+                if (isRealHeading || isPdfPageMarker) {
                     if (currentBuffer.length > 0) {
                         rawChapters.push({ title: currentTitle, text: currentBuffer.join(" ") });
                         currentBuffer = [];
                     }
                     currentTitle = trimmed.replace(/^#{1,3}\s+/, "");
-                } else {
+                } else if (!pdfPageRegex.test(trimmed)) {
                     currentBuffer.push(trimmed);
                 }
             });
@@ -1174,12 +1324,12 @@
                 rawChapters.push({ title: currentTitle, text: currentBuffer.join(" ") });
             }
 
-            const SENTENCES_PER_PAGE = 3;
+            const SENTENCES_PER_PAGE = 4;
             return rawChapters.map(function(ch) {
                 const sentences = ch.text
                     .split(/(?<=[.!?])\s+/)
                     .map(function(s) { return s.trim(); })
-                    .filter(function(s) { return s.length > 0; });
+                    .filter(function(s) { return s.length > 0 && !/^oceanofpdf\.com$/i.test(s); });
 
                 const pages = [];
                 for (let i = 0; i < sentences.length; i += SENTENCES_PER_PAGE) {
@@ -1205,6 +1355,7 @@
                     isParsingFile: false,
                     uploadStatusMsg: "",
                     searchQuery: "",
+                    tocFilterQuery: "",
                     allLocalDocs: initialDocs.slice(),
                     documents: initialDocs.slice(),
                     activeDoc: firstDoc,
@@ -1216,6 +1367,7 @@
                     playbackRate: 1,
                     isPlaying: false,
                     showVideoPlayer: false,
+                    videoPlaybackError: false,
                     selectedVideoIndex: 0,
                     availableVoices: [],
                     languageOptions: [
@@ -1244,6 +1396,7 @@
             created() {
                 this.fetchDocuments();
                 this.initSpeechVoices();
+                this.saveLocalBackup();
             },
             watch: {
                 searchQuery: "searchDocuments"
@@ -1305,16 +1458,19 @@
 
                     const ext = file.name.split(".").pop().toLowerCase();
                     this.newDoc.title = file.name.replace(/\.[^.]+$/, "");
+                    this.newDoc.videos = [];
                     this.isParsingFile = true;
                     this.uploadStatusMsg = "Importing " + file.name + "...";
 
                     try {
-                        if (["mp4", "webm", "ogg", "mov"].includes(ext) || file.type.startsWith("video/")) {
+                        if (["mp4", "webm", "ogg", "mov", "m4v"].includes(ext) || file.type.startsWith("video/")) {
+                            const mime = file.type || (ext === "webm" ? "video/webm" : (ext === "ogg" ? "video/ogg" : "video/mp4"));
                             const blobUrl = URL.createObjectURL(file);
                             this.newDoc.fileType = "VIDEO";
                             this.newDoc.videos.push({
                                 title: file.name,
                                 url: blobUrl,
+                                mime: mime,
                                 kind: "video"
                             });
                             if (!this.newDoc.rawText.trim()) {
@@ -1325,26 +1481,51 @@
                             this.newDoc.fileType = "PDF";
                             const arrayBuffer = await file.arrayBuffer();
                             const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                            const pageChapters = [];
+                            const pageBlocks = [];
 
                             for (let p = 1; p <= pdf.numPages; p++) {
                                 const page = await pdf.getPage(p);
                                 const textContent = await page.getTextContent();
-                                const pageText = textContent.items.map(function(item) { return item.str; }).join(" ").trim();
-                                if (pageText) {
-                                    pageChapters.push("PDF Page " + p + "\n" + pageText);
+
+                                // Preserve line breaks when Y-coordinate changes so Chapter headings stay on their own line
+                                let lastY = null;
+                                let linesOnPage = [];
+                                let currentLine = [];
+
+                                textContent.items.forEach(function(item) {
+                                    const str = (item.str || "").trim();
+                                    if (!str) return;
+                                    const y = item.transform ? Math.round(item.transform[5]) : null;
+                                    if (lastY !== null && y !== null && Math.abs(y - lastY) > 4) {
+                                        if (currentLine.length > 0) {
+                                            linesOnPage.push(currentLine.join(" "));
+                                            currentLine = [];
+                                        }
+                                    }
+                                    currentLine.push(str);
+                                    lastY = y;
+                                });
+                                if (currentLine.length > 0) {
+                                    linesOnPage.push(currentLine.join(" "));
                                 }
+
+                                const pageText = linesOnPage.join("\n").trim();
+                                if (pageText) {
+                                    pageBlocks.push("PDF Page " + p + "\n" + pageText);
+                                }
+
+                                // Only attach genuine video annotations (strictly validated by normalizeVideoObject)
                                 try {
                                     const annotations = await page.getAnnotations();
                                     annotations.forEach((ann) => {
-                                        if (ann.url && /\.(mp4|webm|ogg|mov)|youtube\.com|youtu\.be/i.test(ann.url)) {
+                                        if (ann.url) {
                                             const vObj = normalizeVideoObject(ann.url, "Page " + p + " Video");
                                             if (vObj) this.newDoc.videos.push(vObj);
                                         }
                                     });
                                 } catch (e) {}
                             }
-                            this.newDoc.rawText = pageChapters.join("\n\n") || "Chapter 1: Document\nNo selectable text detected.";
+                            this.newDoc.rawText = pageBlocks.join("\n\n") || "Chapter 1: Document\nNo selectable text detected.";
                             this.uploadStatusMsg = "Imported " + pdf.numPages + " PDF pages.";
                         } else if (ext === "docx") {
                             this.newDoc.fileType = "DOCX";
@@ -1414,13 +1595,77 @@
                 handleExtraVideoUpload(event) {
                     const file = event.target.files && event.target.files[0];
                     if (!file) return;
+                    const ext = file.name.split(".").pop().toLowerCase();
+                    const mime = file.type || (ext === "webm" ? "video/webm" : (ext === "ogg" ? "video/ogg" : "video/mp4"));
                     const blobUrl = URL.createObjectURL(file);
                     this.newDoc.videos.push({
                         title: file.name,
                         url: blobUrl,
+                        mime: mime,
                         kind: "video"
                     });
                     this.uploadStatusMsg = "Attached video: " + file.name;
+                },
+
+                // Directly attach or play a local video file inside the currently open book
+                attachVideoToActiveDoc(event) {
+                    const file = event.target.files && event.target.files[0];
+                    if (!file || !this.activeDoc) return;
+                    const ext = file.name.split(".").pop().toLowerCase();
+                    const mime = file.type || (ext === "webm" ? "video/webm" : (ext === "ogg" ? "video/ogg" : "video/mp4"));
+                    const blobUrl = URL.createObjectURL(file);
+                    if (!Array.isArray(this.activeDoc.videos)) {
+                        this.activeDoc.videos = [];
+                    }
+                    this.activeDoc.videos.unshift({
+                        title: file.name,
+                        url: blobUrl,
+                        mime: mime,
+                        kind: "video"
+                    });
+                    this.selectedVideoIndex = 0;
+                    this.videoPlaybackError = false;
+                    this.showVideoPlayer = true;
+                    if (this.isPlaying) {
+                        this.stopAudio();
+                    }
+                    this.saveLocalBackup();
+                },
+
+                // Replaces a broken or external video entry with a local video file selected by the user
+                replaceActiveVideoWithFile(event) {
+                    const file = event.target.files && event.target.files[0];
+                    if (!file || !this.activeDoc) return;
+                    const ext = file.name.split(".").pop().toLowerCase();
+                    const mime = file.type || (ext === "webm" ? "video/webm" : (ext === "ogg" ? "video/ogg" : "video/mp4"));
+                    const blobUrl = URL.createObjectURL(file);
+                    const newVid = {
+                        title: file.name,
+                        url: blobUrl,
+                        mime: mime,
+                        kind: "video"
+                    };
+                    if (!Array.isArray(this.activeDoc.videos)) {
+                        this.activeDoc.videos = [newVid];
+                    } else {
+                        this.activeDoc.videos.splice(this.selectedVideoIndex, 1, newVid);
+                    }
+                    this.videoPlaybackError = false;
+                    this.showVideoPlayer = true;
+                    if (this.isPlaying) {
+                        this.stopAudio();
+                    }
+                },
+
+                removeActiveVideo() {
+                    if (!this.activeDoc || !Array.isArray(this.activeDoc.videos)) return;
+                    this.activeDoc.videos.splice(this.selectedVideoIndex, 1);
+                    this.selectedVideoIndex = 0;
+                    this.videoPlaybackError = false;
+                    if (this.activeDocVideos.length === 0) {
+                        this.showVideoPlayer = false;
+                    }
+                    this.saveLocalBackup();
                 },
 
                 docVideosFor(doc) {
@@ -1431,6 +1676,7 @@
 
                 openAndPlayVideo() {
                     this.showVideoPlayer = !this.showVideoPlayer;
+                    this.videoPlaybackError = false;
                     if (this.showVideoPlayer && this.isPlaying) {
                         this.stopAudio();
                         this.saveBookmark();
@@ -1442,6 +1688,10 @@
                         this.stopAudio();
                         this.saveBookmark();
                     }
+                },
+
+                onVideoError() {
+                    this.videoPlaybackError = true;
                 },
 
                 async createAndPlayDocument() {
@@ -1501,12 +1751,14 @@
                 selectDocument(doc, autoPlay = false) {
                     this.stopAudio();
                     this.activeDoc = doc;
-                    this.currentChapterIndex = doc.currentChapterIndex || 0;
+                    const maxCh = Math.max(0, parseDocumentIntoChapters(doc.rawText).length - 1);
+                    this.currentChapterIndex = Math.min(doc.currentChapterIndex || 0, maxCh);
                     this.currentPageIndex = doc.currentPageIndex || 0;
                     this.currentSentenceIndex = doc.currentSentenceIndex || 0;
                     this.selectedLanguage = doc.language || "en-GB";
                     this.selectedVideoIndex = 0;
                     this.showVideoPlayer = false;
+                    this.videoPlaybackError = false;
                     if (autoPlay) {
                         this.speakCurrentSentence();
                     }
@@ -1603,7 +1855,6 @@
                     this.currentSentenceIndex = sIdx;
                     this.speakCurrentSentence();
                 },
-                // Clicking any chapter in the Table of Contents jumps there and plays immediately
                 playFromTocChapter(cIdx) {
                     this.stopAudio();
                     this.currentChapterIndex = cIdx;
@@ -1612,7 +1863,6 @@
                     this.saveBookmark();
                     this.speakCurrentSentence();
                 },
-                // Clicking any sub-page in the Table of Contents jumps to that exact page and plays immediately
                 playFromTocPage(cIdx, pIdx) {
                     this.stopAudio();
                     this.currentChapterIndex = cIdx;
@@ -1621,7 +1871,6 @@
                     this.saveBookmark();
                     this.speakCurrentSentence();
                 },
-                // Jumping to any global book page number (Page 1..N across the whole book)
                 jumpToGlobalPage(globalNum) {
                     const target = Number(globalNum);
                     const match = this.allGlobalPages.find((gp) => gp.globalPageNumber === target);
@@ -1740,7 +1989,6 @@
                     if (!this.activeDoc) return [];
                     return parseDocumentIntoChapters(this.activeDoc.rawText);
                 },
-                // Builds the exact Table of Contents with global book page numbers and sub-page previews
                 tableOfContents() {
                     let runningGlobalPage = 1;
                     return this.parsedChapters.map((ch, cIdx) => {
@@ -1763,7 +2011,16 @@
                         };
                     });
                 },
-                // Flat list of every page across the entire document for the "Go to Book Page (1 - N)" selector
+                filteredTableOfContents() {
+                    const q = this.tocFilterQuery.trim().toLowerCase();
+                    if (!q) return this.tableOfContents;
+                    return this.tableOfContents.filter(function(item) {
+                        if (String(item.title).toLowerCase().includes(q)) return true;
+                        return item.subPages.some(function(sp) {
+                            return String(sp.preview).toLowerCase().includes(q);
+                        });
+                    });
+                },
                 allGlobalPages() {
                     const list = [];
                     this.tableOfContents.forEach((toc) => {
