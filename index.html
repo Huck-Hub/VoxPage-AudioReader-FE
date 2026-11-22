@@ -3,20 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VoxPage — Universal Document & Multimedia Audiobook Studio</title>
+    <title>VoxPage — Document & Audiobook Studio</title>
 
-    <!-- Load Font Awesome 4.7 for clean icons -->
+    <!-- Font Awesome 4.7 Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 
-    <!-- Load Vue 3 from the unpkg CDN (Vanilla CST3144 setup) -->
+    <!-- Vue 3 CDN -->
     <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
 
-    <!-- Universal Document Parsers (PDF.js for .pdf, Mammoth.js for Word .docx, JSZip for PowerPoint .pptx & embedded videos) -->
+    <!-- Document Engines: PDF.js (.pdf), Mammoth.js (.docx), JSZip (.pptx & embedded media) -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
 
-    <!-- UI/UX Theme: 2026 "Kuro-Shiro Warm Paper Dark Mode" (ElevenLabs Reader / Audible Minimalist) -->
+    <!-- Theme: "Kuro-Shiro Warm Paper Dark Mode" -->
     <style>
         :root {
             --bg-paper: #141210;
@@ -45,13 +45,13 @@
             color: var(--text-cream);
             font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
             margin: 0;
-            padding: 1.5rem 1.25rem 3.5rem;
+            padding: 1.35rem 1.25rem 3.5rem;
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
         }
 
         .studio-shell {
-            max-width: 1180px;
+            max-width: 1260px;
             margin: 0 auto;
         }
 
@@ -62,8 +62,8 @@
             justify-content: space-between;
             align-items: center;
             gap: 1rem;
-            padding-bottom: 1.25rem;
-            margin-bottom: 1.5rem;
+            padding-bottom: 1.15rem;
+            margin-bottom: 1.25rem;
             border-bottom: 1px solid var(--border-warm);
         }
 
@@ -74,34 +74,34 @@
         }
 
         .brand-icon {
-            width: 40px;
-            height: 40px;
+            width: 38px;
+            height: 38px;
             border-radius: 10px;
             background: linear-gradient(135deg, #d97706, #b45309);
             display: grid;
             place-content: center;
             color: #fff;
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             box-shadow: 0 4px 14px rgba(217, 119, 6, 0.3);
         }
 
         .brand-box h1 {
             margin: 0;
-            font-size: 1.4rem;
+            font-size: 1.35rem;
             font-weight: 700;
             letter-spacing: -0.02em;
         }
 
         .brand-box p {
-            margin: 0.15rem 0 0;
-            font-size: 0.82rem;
+            margin: 0.12rem 0 0;
+            font-size: 0.8rem;
             color: var(--text-muted);
         }
 
         .header-actions {
             display: flex;
             align-items: center;
-            gap: 0.65rem;
+            gap: 0.7rem;
             flex-wrap: wrap;
         }
 
@@ -112,7 +112,7 @@
             padding: 0.55rem 1.1rem;
             border-radius: var(--radius-sm);
             font-weight: 600;
-            font-size: 0.85rem;
+            font-size: 0.84rem;
             cursor: pointer;
             transition: background 0.18s ease;
         }
@@ -133,7 +133,7 @@
             padding: 0.52rem 0.95rem;
             border-radius: var(--radius-sm);
             font-weight: 600;
-            font-size: 0.84rem;
+            font-size: 0.83rem;
             cursor: pointer;
             transition: border-color 0.18s ease, background 0.18s ease;
         }
@@ -148,13 +148,59 @@
             cursor: not-allowed;
         }
 
+        /* Top Book Shelf Switcher */
+        .bookshelf-strip {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+            margin-bottom: 1.25rem;
+            border-bottom: 1px solid var(--border-warm);
+        }
+
+        .book-pill {
+            background: var(--bg-card);
+            border: 1px solid var(--border-warm);
+            border-radius: var(--radius-md);
+            padding: 0.6rem 0.95rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            white-space: nowrap;
+            transition: all 0.16s ease;
+        }
+
+        .book-pill:hover {
+            border-color: var(--text-dim);
+            background: var(--bg-elevated);
+        }
+
+        .book-pill.active {
+            border-color: var(--accent-gold);
+            background: var(--accent-gold-soft);
+        }
+
+        .book-pill-title {
+            font-size: 0.86rem;
+            font-weight: 600;
+            color: var(--text-cream);
+        }
+
+        .book-pill-meta {
+            font-size: 0.73rem;
+            color: var(--text-muted);
+            margin-top: 0.12rem;
+        }
+
         /* Resume Saved Bookmark Banner */
         .resume-banner {
             background: var(--accent-gold-soft);
             border: 1px solid rgba(217, 119, 6, 0.45);
             border-radius: var(--radius-md);
             padding: 0.85rem 1.15rem;
-            margin-bottom: 1.35rem;
+            margin-bottom: 1.25rem;
             display: flex;
             flex-wrap: wrap;
             justify-content: space-between;
@@ -162,7 +208,7 @@
             gap: 0.85rem;
         }
 
-        /* Universal Dropzone & Paste New Document Drawer */
+        /* Universal Document Importer Modal/Drawer */
         .paste-card {
             background: var(--bg-card);
             border: 1px solid var(--border-warm);
@@ -175,7 +221,7 @@
             background: var(--bg-paper);
             border: 1.5px dashed rgba(217, 119, 6, 0.55);
             border-radius: var(--radius-md);
-            padding: 1.1rem 1.25rem;
+            padding: 1rem 1.25rem;
             margin-bottom: 1rem;
             display: flex;
             flex-wrap: wrap;
@@ -219,9 +265,9 @@
             background: var(--bg-paper);
             border: 1px solid var(--border-warm);
             color: var(--text-cream);
-            padding: 0.65rem 0.85rem;
+            padding: 0.62rem 0.85rem;
             border-radius: var(--radius-sm);
-            font-size: 0.86rem;
+            font-size: 0.85rem;
             width: 100%;
             outline: none;
         }
@@ -237,32 +283,56 @@
             resize: vertical;
         }
 
-        /* Main 2-Column Audiobook Studio Layout */
+        /* Side-by-Side Table of Contents + Audiobook Reader Layout */
         .studio-grid {
             display: grid;
-            grid-template-columns: 310px 1fr;
+            grid-template-columns: 350px 1fr;
             gap: 1.35rem;
             align-items: start;
         }
 
-        @media (max-width: 900px) {
+        @media (max-width: 940px) {
             .studio-grid {
                 grid-template-columns: 1fr;
             }
         }
 
-        .sidebar-card {
+        /* Left Column: Exact Interactive Table of Contents Sidebar */
+        .toc-card {
             background: var(--bg-card);
             border: 1px solid var(--border-warm);
             border-radius: var(--radius-lg);
-            padding: 1.1rem;
+            padding: 1.2rem;
+            position: sticky;
+            top: 1.25rem;
+            max-height: calc(100vh - 2.5rem);
+            overflow-y: auto;
+        }
+
+        .toc-header {
             display: flex;
-            flex-direction: column;
-            gap: 1rem;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 0.85rem;
+            margin-bottom: 0.85rem;
+            border-bottom: 1px solid var(--border-warm);
+        }
+
+        .toc-book-title {
+            font-size: 0.98rem;
+            font-weight: 700;
+            color: var(--text-cream);
+            margin: 0;
+        }
+
+        .toc-book-sub {
+            font-size: 0.76rem;
+            color: var(--text-muted);
+            margin-top: 0.2rem;
         }
 
         .section-label {
-            font-size: 0.75rem;
+            font-size: 0.73rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 0.06em;
@@ -270,39 +340,117 @@
             margin-bottom: 0.45rem;
         }
 
-        .doc-item, .chapter-item {
-            padding: 0.65rem 0.8rem;
+        .toc-chapter-block {
+            margin-bottom: 0.65rem;
+            border: 1px solid var(--border-warm);
             border-radius: var(--radius-sm);
-            border: 1px solid transparent;
             background: var(--bg-paper);
-            cursor: pointer;
-            margin-bottom: 0.45rem;
-            transition: all 0.16s ease;
+            overflow: hidden;
+            transition: border-color 0.16s ease;
         }
 
-        .doc-item:hover, .chapter-item:hover {
-            border-color: var(--border-warm);
+        .toc-chapter-block.active {
+            border-color: var(--accent-gold);
+        }
+
+        .toc-chapter-row {
+            padding: 0.72rem 0.85rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.65rem;
+            transition: background 0.16s ease;
+        }
+
+        .toc-chapter-row:hover {
             background: var(--bg-elevated);
         }
 
-        .doc-item.active, .chapter-item.active {
-            border-color: var(--accent-gold);
+        .toc-chapter-block.active .toc-chapter-row {
             background: var(--accent-gold-soft);
         }
 
-        .doc-item-header {
+        .toc-chapter-left {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            min-width: 0;
+        }
+
+        .toc-index-badge {
+            width: 24px;
+            height: 24px;
+            border-radius: 6px;
+            background: var(--bg-elevated);
+            border: 1px solid var(--border-warm);
+            display: grid;
+            place-content: center;
+            font-size: 0.74rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .toc-chapter-block.active .toc-index-badge {
+            background: var(--accent-gold);
+            border-color: var(--accent-gold);
+            color: #fff;
+        }
+
+        .toc-chapter-block.completed .toc-index-badge {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: rgba(16, 185, 129, 0.4);
+            color: var(--success);
+        }
+
+        .toc-chapter-title {
+            font-size: 0.86rem;
+            font-weight: 600;
+            color: var(--text-cream);
+            line-height: 1.35;
+        }
+
+        .toc-page-ref {
+            font-size: 0.73rem;
+            font-weight: 600;
+            color: var(--text-muted);
+            white-space: nowrap;
+            flex-shrink: 0;
+        }
+
+        /* Nested Sub-Pages inside each TOC Entry */
+        .toc-subpages {
+            border-top: 1px solid var(--border-warm);
+            background: rgba(0, 0, 0, 0.18);
+            padding: 0.35rem 0.55rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.25rem;
+        }
+
+        .toc-subpage-row {
+            padding: 0.38rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.77rem;
+            color: var(--text-muted);
+            cursor: pointer;
             display: flex;
             justify-content: space-between;
             align-items: center;
             gap: 0.5rem;
-            font-weight: 600;
-            font-size: 0.88rem;
+            transition: all 0.14s ease;
         }
 
-        .doc-item-sub {
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin-top: 0.25rem;
+        .toc-subpage-row:hover {
+            background: var(--bg-elevated);
+            color: var(--text-cream);
+        }
+
+        .toc-subpage-row.active-page {
+            background: rgba(217, 119, 6, 0.2);
+            color: #fff;
+            font-weight: 600;
         }
 
         /* Right Column: Reader Page + Embedded Video Player + Audio Transport Bar */
@@ -313,7 +461,7 @@
             padding: 1.5rem;
             display: flex;
             flex-direction: column;
-            gap: 1.25rem;
+            gap: 1.2rem;
         }
 
         /* Language, Voice & Speed Bar */
@@ -321,7 +469,7 @@
             display: grid;
             grid-template-columns: 1.2fr 1.4fr 0.8fr 1fr;
             gap: 0.75rem;
-            padding-bottom: 1.15rem;
+            padding-bottom: 1.1rem;
             border-bottom: 1px solid var(--border-warm);
             align-items: end;
         }
@@ -377,7 +525,7 @@
             font-weight: 700;
             color: var(--accent-gold-hover);
             background: var(--accent-gold-soft);
-            padding: 0.28rem 0.7rem;
+            padding: 0.3rem 0.75rem;
             border-radius: 99px;
         }
 
@@ -385,11 +533,11 @@
             background: var(--bg-paper);
             border: 1px solid var(--border-warm);
             border-radius: var(--radius-md);
-            padding: 1.75rem 2rem;
-            min-height: 265px;
+            padding: 1.85rem 2.1rem;
+            min-height: 275px;
             font-family: 'Georgia', 'Times New Roman', serif;
-            font-size: 1.15rem;
-            line-height: 1.85;
+            font-size: 1.16rem;
+            line-height: 1.88;
             color: var(--text-cream);
         }
 
@@ -477,50 +625,85 @@
                 <div class="brand-icon"><i class="fa fa-headphones" aria-hidden="true"></i></div>
                 <div>
                     <h1 v-text="sitename"></h1>
-                    <p>Upload Word (.docx), PDF (.pdf), PowerPoint (.pptx), Text, or Video • Multi-Language Audiobook & Video Studio</p>
+                    <p>Universal Document-to-Audiobook Studio • Word, PDF, PowerPoint, Text & Video</p>
                 </div>
             </div>
 
             <div class="header-actions">
-                <span class="chapter-badge">
-                    <i class="fa fa-book"></i> {{ documents.length }} Documents in Library
-                </span>
+                <input
+                    class="input-warm"
+                    style="width: 220px; padding: 0.48rem 0.75rem; font-size: 0.82rem;"
+                    v-model="searchQuery"
+                    placeholder="Search library..."
+                >
                 <button class="btn-gold" v-on:click="showPasteDrawer = !showPasteDrawer">
                     <i class="fa" v-bind:class="showPasteDrawer ? 'fa-times' : 'fa-plus'"></i>
-                    {{ showPasteDrawer ? 'Close Importer' : '+ Import Word / PDF / PPTX / Video / Text' }}
+                    {{ showPasteDrawer ? 'Close Importer' : '+ Import Document' }}
                 </button>
             </div>
         </header>
+
+        <!-- Library Bookshelf Strip -->
+        <nav class="bookshelf-strip">
+            <div
+                v-for="doc in documents"
+                class="book-pill"
+                v-bind:class="{ active: activeDoc && doc._id === activeDoc._id }"
+                v-on:click="selectDocument(doc, false)"
+            >
+                <div>
+                    <div class="book-pill-title">
+                        <i class="fa fa-book" style="color: var(--accent-gold-hover); margin-right: 0.35rem;"></i>
+                        <span v-text="doc.title"></span>
+                    </div>
+                    <div class="book-pill-meta">
+                        {{ doc.author || 'Document' }} • {{ doc.fileType || 'DOC' }} • {{ doc.language }}
+                        <span v-if="docVideosFor(doc).length > 0" style="color: var(--accent-gold-hover);">
+                            • <i class="fa fa-video-camera"></i> Video
+                        </span>
+                    </div>
+                </div>
+                <button
+                    v-if="documents.length > 1"
+                    class="btn-outline"
+                    style="padding: 0.2rem 0.45rem; font-size: 0.72rem;"
+                    v-on:click.stop="deleteDocument(doc)"
+                    title="Remove from library"
+                >
+                    <i class="fa fa-trash-o"></i>
+                </button>
+            </div>
+        </nav>
 
         <!-- Saved Progress Resume Banner -->
         <section v-if="activeDoc && hasSavedProgress(activeDoc) && !isPlaying" class="resume-banner">
             <div>
                 <i class="fa fa-bookmark" style="color: var(--accent-gold-hover); margin-right: 0.5rem;"></i>
-                <strong>Saved Listening Bookmark Found:</strong>
+                <strong>Continue Listening:</strong>
                 <span style="color: var(--text-muted); margin-left: 0.4rem;">
-                    You paused <em>{{ activeDoc.title }}</em> on
-                    <strong>Chapter {{ activeDoc.currentChapterIndex + 1 }}, Page {{ activeDoc.currentPageIndex + 1 }} (Sentence {{ activeDoc.currentSentenceIndex + 1 }})</strong>.
+                    Bookmarked at <strong>{{ currentChapterObj.title }}</strong>
+                    (Book Page {{ currentGlobalPageNumber }} of {{ totalBookPages }}).
                 </span>
             </div>
             <div style="display: flex; gap: 0.55rem;">
                 <button class="btn-gold" v-on:click="resumeFromBookmark">
-                    <i class="fa fa-play"></i> Resume Listening Here
+                    <i class="fa fa-play"></i> Resume Audio
                 </button>
                 <button class="btn-outline" v-on:click="restartFromBeginning">
-                    <i class="fa fa-refresh"></i> Start from Beginning
+                    <i class="fa fa-refresh"></i> Restart Book
                 </button>
             </div>
         </section>
 
         <!-- Universal Importer Drawer: Word (.docx), PDF (.pdf), PowerPoint (.pptx), Text (.txt/.md), & Video (.mp4/.webm) -->
         <section v-if="showPasteDrawer" class="paste-card">
-            <div class="section-label">Universal Document & Embedded Video Importer</div>
+            <div class="section-label">Import Document or Video</div>
 
             <div class="universal-dropzone">
                 <div>
-                    <strong style="font-size: 0.95rem; color: var(--text-cream);">
+                    <strong style="font-size: 0.92rem; color: var(--text-cream);">
                         <i class="fa fa-cloud-upload" style="color: var(--accent-gold-hover);"></i>
-                        Upload Any Document or Video File
+                        Select a Document or Media File
                     </strong>
                     <div class="format-badges">
                         <span class="format-pill"><i class="fa fa-file-word-o"></i> Word (.docx)</span>
@@ -530,7 +713,7 @@
                         <span class="format-pill"><i class="fa fa-film"></i> Video (.mp4, .webm, .ogg)</span>
                     </div>
                     <div v-if="uploadStatusMsg" style="margin-top: 0.45rem; font-size: 0.8rem; color: var(--accent-gold-hover); font-weight: 600;">
-                        <i class="fa fa-info-circle"></i> {{ uploadStatusMsg }}
+                        <i class="fa fa-check-circle"></i> {{ uploadStatusMsg }}
                     </div>
                 </div>
 
@@ -545,8 +728,8 @@
                         >
                     </label>
 
-                    <label class="btn-outline" style="display: inline-block; cursor: pointer;" title="Attach an extra video file to this document">
-                        <i class="fa fa-video-camera"></i> + Attach Extra Video File
+                    <label class="btn-outline" style="display: inline-block; cursor: pointer;">
+                        <i class="fa fa-video-camera"></i> + Attach Video File
                         <input
                             type="file"
                             accept="video/*"
@@ -561,12 +744,12 @@
                 <input
                     class="input-warm"
                     v-model="newDoc.title"
-                    placeholder="Document Title (auto-filled when you upload a file)"
+                    placeholder="Document Title"
                 >
                 <input
                     class="input-warm"
                     v-model="newDoc.author"
-                    placeholder="Author / Source (optional)"
+                    placeholder="Author / Source"
                 >
                 <select class="select-warm" v-model="newDoc.language">
                     <option v-for="lang in languageOptions" v-bind:value="lang.code">
@@ -576,14 +759,13 @@
                 <input
                     class="input-warm"
                     v-model="newDoc.videoUrlInput"
-                    placeholder="Optional Video URL (.mp4 or YouTube link)"
+                    placeholder="Optional Embedded Video URL (.mp4 or YouTube)"
                 >
             </div>
 
-            <!-- Show detected embedded videos before saving -->
             <div v-if="newDoc.videos.length > 0" style="margin-bottom: 0.75rem; font-size: 0.82rem; color: var(--success);">
                 <i class="fa fa-film"></i>
-                <strong>{{ newDoc.videos.length }} Embedded / Attached Video(s) Ready to Play:</strong>
+                <strong>{{ newDoc.videos.length }} Embedded Video(s) Attached:</strong>
                 <span v-for="(v, idx) in newDoc.videos" style="margin-left: 0.5rem;" class="format-pill">
                     {{ idx + 1 }}. {{ v.title }}
                 </span>
@@ -592,78 +774,74 @@
             <textarea
                 class="textarea-warm"
                 v-model="newDoc.rawText"
-                placeholder="Paste any written document here, or upload a Word (.docx), PDF (.pdf), or PowerPoint (.pptx) file above and its extracted chapters/slides will appear here automatically so you can review or edit them before listening!"
+                placeholder="Paste your document text here or upload a file above..."
             ></textarea>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.85rem; flex-wrap: wrap; gap: 0.75rem;">
-                <span style="font-size: 0.8rem; color: var(--text-muted);">
-                    Automatic Extraction: PDF pages become Chapters • PowerPoint slides become Chapters • Embedded videos inside .docx/.pptx or pasted video links become playable!
-                </span>
+            <div style="display: flex; justify-content: flex-end; align-items: center; margin-top: 0.85rem;">
                 <button class="btn-gold" v-on:click="createAndPlayDocument" v-bind:disabled="!isValidNewDoc || isParsingFile">
-                    <i class="fa fa-magic"></i> {{ isParsingFile ? 'Extracting Document...' : 'Convert to Audiobook & Start Reading' }}
+                    <i class="fa fa-play"></i> {{ isParsingFile ? 'Processing Document...' : 'Save to Library & Start Listening' }}
                 </button>
             </div>
         </section>
 
-        <!-- Main 2-Column Studio -->
+        <!-- Main 2-Column Production Layout: Exact Table of Contents Beside the Audio Reader -->
         <div class="studio-grid" v-if="activeDoc">
-            <!-- Left Sidebar: Document Library & Chapter List -->
-            <aside class="sidebar-card">
-                <div>
-                    <div class="section-label">1. Your Audiobook Library</div>
-                    <input
-                        class="input-warm"
-                        style="margin-bottom: 0.6rem; padding: 0.45rem 0.7rem; font-size: 0.82rem;"
-                        v-model="searchQuery"
-                        placeholder="Search library..."
-                    >
-                    <div
-                        v-for="doc in documents"
-                        class="doc-item"
-                        v-bind:class="{ active: doc._id === activeDoc._id }"
-                        v-on:click="selectDocument(doc)"
-                    >
-                        <div class="doc-item-header">
-                            <span v-text="doc.title"></span>
-                            <button
-                                v-if="documents.length > 1"
-                                class="btn-outline"
-                                style="padding: 0.15rem 0.45rem; font-size: 0.72rem;"
-                                v-on:click.stop="deleteDocument(doc)"
-                                title="Delete book"
-                            >
-                                <i class="fa fa-trash-o"></i>
-                            </button>
-                        </div>
-                        <div class="doc-item-sub">
-                            <span class="format-pill" style="padding: 0.1rem 0.35rem; font-size: 0.68rem; margin-right: 0.3rem;">
-                                {{ doc.fileType || 'TEXT' }}
-                            </span>
-                            {{ doc.language }} • Ch {{ (doc.currentChapterIndex || 0) + 1 }}, Pg {{ (doc.currentPageIndex || 0) + 1 }}
-                            <span v-if="docVideosFor(doc).length > 0" style="color: var(--accent-gold-hover); margin-left: 0.25rem;">
-                                • <i class="fa fa-video-camera"></i> {{ docVideosFor(doc).length }} Video
-                            </span>
+            <!-- Left Column: Exact Interactive Table of Contents (Click any entry to play immediately) -->
+            <aside class="toc-card">
+                <div class="toc-header">
+                    <div>
+                        <div class="section-label" style="margin-bottom: 0.2rem;">Table of Contents</div>
+                        <h2 class="toc-book-title" v-text="activeDoc.title"></h2>
+                        <div class="toc-book-sub">
+                            {{ tableOfContents.length }} Sections • {{ totalBookPages }} Total Pages
                         </div>
                     </div>
+                    <span class="chapter-badge">{{ bookProgressPercent }}%</span>
                 </div>
 
-                <!-- Chapter / Slide / PDF Page Selector -->
-                <div style="border-top: 1px solid var(--border-warm); padding-top: 0.9rem;">
-                    <div class="section-label">
-                        2. Chapters / Slides ({{ parsedChapters.length }})
-                    </div>
-                    <div
-                        v-for="(ch, cIdx) in parsedChapters"
-                        class="chapter-item"
-                        v-bind:class="{ active: cIdx === currentChapterIndex }"
-                        v-on:click="jumpToChapter(cIdx)"
-                    >
-                        <div class="doc-item-header">
-                            <span>{{ ch.title }}</span>
-                            <i v-if="cIdx === currentChapterIndex && isPlaying" class="fa fa-volume-up" style="color: var(--accent-gold-hover);"></i>
+                <!-- Exact Table of Contents Entries -->
+                <div
+                    v-for="tocItem in tableOfContents"
+                    class="toc-chapter-block"
+                    v-bind:class="{
+                        active: tocItem.chapterIndex === currentChapterIndex,
+                        completed: tocItem.chapterIndex < currentChapterIndex
+                    }"
+                >
+                    <!-- Clicking any TOC heading jumps directly to that chapter and plays it -->
+                    <div class="toc-chapter-row" v-on:click="playFromTocChapter(tocItem.chapterIndex)">
+                        <div class="toc-chapter-left">
+                            <span class="toc-index-badge">
+                                <i v-if="tocItem.chapterIndex === currentChapterIndex && isPlaying" class="fa fa-volume-up"></i>
+                                <i v-else-if="tocItem.chapterIndex < currentChapterIndex" class="fa fa-check"></i>
+                                <span v-else>{{ tocItem.chapterIndex + 1 }}</span>
+                            </span>
+                            <span class="toc-chapter-title" v-text="tocItem.title"></span>
                         </div>
-                        <div class="doc-item-sub">
-                            {{ ch.pages.length }} {{ ch.pages.length === 1 ? 'Page' : 'Pages' }}
+                        <span class="toc-page-ref">
+                            p. {{ tocItem.startGlobalPage }}
+                        </span>
+                    </div>
+
+                    <!-- Exact Sub-Pages inside each Table of Contents Chapter (click any page to play from there) -->
+                    <div class="toc-subpages">
+                        <div
+                            v-for="sub in tocItem.subPages"
+                            class="toc-subpage-row"
+                            v-bind:class="{
+                                'active-page': tocItem.chapterIndex === currentChapterIndex && sub.pageIndex === currentPageIndex
+                            }"
+                            v-on:click="playFromTocPage(tocItem.chapterIndex, sub.pageIndex)"
+                        >
+                            <span style="overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">
+                                <i
+                                    class="fa"
+                                    v-bind:class="(tocItem.chapterIndex === currentChapterIndex && sub.pageIndex === currentPageIndex && isPlaying) ? 'fa-volume-up' : 'fa-play-circle-o'"
+                                    style="margin-right: 0.35rem;"
+                                ></i>
+                                {{ sub.preview }}
+                            </span>
+                            <span style="flex-shrink: 0; font-weight: 600;">p. {{ sub.globalPageNumber }}</span>
                         </div>
                     </div>
                 </div>
@@ -671,10 +849,10 @@
 
             <!-- Right Main Panel: Language Controls, Embedded Video Player, Page Jumper, Live Karaoke Page & Audio Player -->
             <main class="reader-card">
-                <!-- Multi-Language, Voice, Playback Speed & Page Skip Toolbar -->
+                <!-- Multi-Language, Voice, Playback Speed & Global Page Skip Toolbar -->
                 <div class="controls-toolbar">
                     <div>
-                        <div class="section-label">Listen in Language</div>
+                        <div class="section-label">Language</div>
                         <select class="select-warm" v-model="selectedLanguage" v-on:change="onLanguageChange">
                             <option v-for="lang in languageOptions" v-bind:value="lang.code">
                                 {{ lang.label }}
@@ -683,9 +861,9 @@
                     </div>
 
                     <div>
-                        <div class="section-label">Narrator Voice ({{ filteredVoices.length }} available)</div>
+                        <div class="section-label">Narrator Voice ({{ filteredVoices.length }})</div>
                         <select class="select-warm" v-model="selectedVoiceURI" v-on:change="onVoiceChange">
-                            <option value="">Default System Voice ({{ selectedLanguage }})</option>
+                            <option value="">System Voice ({{ selectedLanguage }})</option>
                             <option v-for="v in filteredVoices" v-bind:value="v.voiceURI">
                                 {{ v.name }} ({{ v.lang }})
                             </option>
@@ -693,35 +871,35 @@
                     </div>
 
                     <div>
-                        <div class="section-label">Reading Speed</div>
+                        <div class="section-label">Speed</div>
                         <select class="select-warm" v-model.number="playbackRate" v-on:change="onRateChange">
-                            <option v-bind:value="0.75">0.75x (Slow)</option>
-                            <option v-bind:value="1">1.0x (Normal)</option>
-                            <option v-bind:value="1.25">1.25x (Fast)</option>
-                            <option v-bind:value="1.5">1.5x (Study)</option>
-                            <option v-bind:value="2">2.0x (Speed)</option>
+                            <option v-bind:value="0.75">0.75x</option>
+                            <option v-bind:value="1">1.0x</option>
+                            <option v-bind:value="1.25">1.25x</option>
+                            <option v-bind:value="1.5">1.5x</option>
+                            <option v-bind:value="2">2.0x</option>
                         </select>
                     </div>
 
-                    <!-- Skip to Particular Page Selector -->
+                    <!-- Skip to Any Page Across the Entire Book -->
                     <div>
-                        <div class="section-label">Skip to Page (1 – {{ currentChapterPages.length }})</div>
-                        <select class="select-warm" v-model.number="currentPageIndex" v-on:change="jumpToPage(currentPageIndex)">
-                            <option v-for="(pg, pIdx) in currentChapterPages" v-bind:value="pIdx">
-                                Page {{ pIdx + 1 }} of {{ currentChapterPages.length }}
+                        <div class="section-label">Go to Book Page (1 – {{ totalBookPages }})</div>
+                        <select class="select-warm" v-bind:value="currentGlobalPageNumber" v-on:change="jumpToGlobalPage($event.target.value)">
+                            <option v-for="gp in allGlobalPages" v-bind:value="gp.globalPageNumber">
+                                Page {{ gp.globalPageNumber }} — {{ gp.chapterTitle }}
                             </option>
                         </select>
                     </div>
                 </div>
 
-                <!-- Embedded / Attached Video Player Section (Appears whenever the document contains or links to a video!) -->
+                <!-- Embedded / Attached Video Player Section (Shown automatically when a document contains video media) -->
                 <section v-if="activeDocVideos.length > 0" class="video-theater-card">
                     <div class="video-theater-header">
                         <div>
                             <i class="fa fa-film" style="color: var(--accent-gold-hover); margin-right: 0.45rem;"></i>
-                            <strong style="font-size: 0.9rem;">Video Found in This Document ({{ activeDocVideos.length }})</strong>
+                            <strong style="font-size: 0.9rem;">Document Media ({{ activeDocVideos.length }})</strong>
                             <span style="font-size: 0.8rem; color: var(--text-muted); margin-left: 0.45rem;">
-                                — {{ activeVideoObj.title }}
+                                {{ activeVideoObj.title }}
                             </span>
                         </div>
 
@@ -739,12 +917,11 @@
 
                             <button class="btn-gold" style="padding: 0.42rem 0.85rem; font-size: 0.8rem;" v-on:click="openAndPlayVideo">
                                 <i class="fa" v-bind:class="showVideoPlayer ? 'fa-eye-slash' : 'fa-play-circle'"></i>
-                                {{ showVideoPlayer ? 'Hide Video Player' : 'Play Video in Document' }}
+                                {{ showVideoPlayer ? 'Close Video' : 'Play Video' }}
                             </button>
                         </div>
                     </div>
 
-                    <!-- Video Stage (HTML5 <video> for MP4/WebM or embedded <iframe> for YouTube/Vimeo) -->
                     <div v-if="showVideoPlayer && activeVideoObj" class="video-stage">
                         <iframe
                             v-if="activeVideoObj.kind === 'iframe'"
@@ -767,9 +944,10 @@
                 <div class="book-page-header">
                     <div>
                         <span class="chapter-badge">{{ currentChapterObj.title }}</span>
-                        <span style="margin-left: 0.65rem; font-size: 0.85rem; color: var(--text-muted);">
-                            Page {{ currentPageIndex + 1 }} of {{ currentChapterPages.length }}
-                            • ~{{ estimatedMinutesLeft }} min remaining
+                        <span style="margin-left: 0.65rem; font-size: 0.84rem; color: var(--text-muted);">
+                            Book Page {{ currentGlobalPageNumber }} of {{ totalBookPages }}
+                            (Section Page {{ currentPageIndex + 1 }}/{{ currentChapterPages.length }})
+                            • ~{{ estimatedMinutesLeft }} min left
                         </span>
                     </div>
 
@@ -785,9 +963,6 @@
 
                 <!-- Warm Paper Page with Interactive Click-any-Sentence Karaoke Highlighting -->
                 <article class="book-paper">
-                    <div style="font-size: 0.78rem; color: var(--text-dim); margin-bottom: 0.85rem; font-family: sans-serif;">
-                        <i class="fa fa-hand-pointer-o"></i> Tip: Click any sentence below to jump the audio narrator directly to that sentence.
-                    </div>
                     <p style="margin: 0;">
                         <span
                             v-for="(sentence, sIdx) in currentPageSentences"
@@ -806,8 +981,8 @@
                 <!-- Overall Book Completion Progress Bar -->
                 <div>
                     <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 0.35rem;">
-                        <span>Book Listening Progress (Auto-Saved)</span>
-                        <strong>{{ bookProgressPercent }}% Complete (Chapter {{ currentChapterIndex + 1 }}/{{ parsedChapters.length }}, Page {{ currentPageIndex + 1 }}/{{ currentChapterPages.length }})</strong>
+                        <span>Reading Progress</span>
+                        <strong>{{ bookProgressPercent }}% Complete (Page {{ currentGlobalPageNumber }} of {{ totalBookPages }})</strong>
                     </div>
                     <div class="progress-track">
                         <div class="progress-fill" v-bind:style="{ width: bookProgressPercent + '%' }"></div>
@@ -819,7 +994,7 @@
                     <div class="player-buttons">
                         <button class="btn-play-main" v-on:click="togglePlayPause">
                             <i class="fa" v-bind:class="isPlaying ? 'fa-pause' : 'fa-play'"></i>
-                            {{ isPlaying ? 'Pause & Save Bookmark' : (isPausedMidBook ? 'Resume Audio' : 'Read Aloud') }}
+                            {{ isPlaying ? 'Pause' : (isPausedMidBook ? 'Resume Audio' : 'Play Audiobook') }}
                         </button>
 
                         <button class="btn-outline" v-on:click="prevSentence" title="Previous Sentence">
@@ -830,17 +1005,17 @@
                             Next Line <i class="fa fa-step-forward"></i>
                         </button>
 
-                        <button class="btn-outline" v-on:click="restartFromBeginning" title="Restart Book from Chapter 1, Page 1">
-                            <i class="fa fa-undo"></i> Restart Book
+                        <button class="btn-outline" v-on:click="restartFromBeginning" title="Restart from Chapter 1, Page 1">
+                            <i class="fa fa-undo"></i> Restart
                         </button>
                     </div>
 
                     <div style="font-size: 0.8rem; color: var(--text-muted);">
                         <span v-if="isPlaying" style="color: var(--accent-gold-hover); font-weight: 600;">
-                            <i class="fa fa-volume-up"></i> Speaking ({{ selectedLanguage }} @ {{ playbackRate }}x)
+                            <i class="fa fa-volume-up"></i> Playing {{ currentChapterObj.title }} ({{ selectedLanguage }} • {{ playbackRate }}x)
                         </span>
                         <span v-else>
-                            <i class="fa fa-check-circle" style="color: var(--success);"></i> Bookmark saved at Ch {{ currentChapterIndex + 1 }}, Page {{ currentPageIndex + 1 }}
+                            <i class="fa fa-bookmark" style="color: var(--accent-gold-hover);"></i> Saved at Page {{ currentGlobalPageNumber }} of {{ totalBookPages }}
                         </span>
                     </div>
                 </footer>
@@ -849,34 +1024,27 @@
     </div>
 
     <script type="module">
-        // Configure PDF.js worker CDN
         if (window.pdfjsLib) {
             window.pdfjsLib.GlobalWorkerOptions.workerSrc = "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";
         }
 
         const BACKEND_URL = "http://localhost:3000";
-        const STORAGE_KEY = "voxpage_docs_v2";
+        const STORAGE_KEY = "voxpage_docs_v3";
         const { createApp } = Vue;
 
         const DEFAULT_DOCUMENTS = [
             {
                 _id: "673b40010000000000000001",
-                title: "The Art of Full-Stack Engineering (with Video Lecture)",
-                author: "CST3144 Study Guide",
-                fileType: "DOCX / Multimedia",
+                title: "Modern Full-Stack Architecture",
+                author: "Middlesex Press",
+                fileType: "DOCX",
                 language: "en-GB",
                 currentChapterIndex: 0,
                 currentPageIndex: 0,
                 currentSentenceIndex: 0,
                 createdAt: "2026-11-22",
-                videos: [
-                    {
-                        title: "Sample Embedded Lecture Clip (MP4)",
-                        url: "https://commondatastorage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4",
-                        kind: "video"
-                    }
-                ],
-                rawText: "Chapter 1: The Three-Tier Web Architecture\nModern web applications are divided into three clean layers that work together in harmony. The presentation layer runs in the user's browser using HTML, CSS, and reactive Vue.js components. When a user clicks a button, the browser sends an asynchronous HTTP request using the native Fetch API.\nThe application layer runs on a Node.js and Express.js server that listens for incoming requests. Express middlewares inspect, log, and validate the request before routing it to the right handler. This separation keeps the front-end fast and the back-end secure.\n\nChapter 2: Reactive State with Vue.js\nVue.js eliminates manual DOM manipulation by binding data directly to the HTML template. When a variable inside the data object changes, Vue automatically updates every part of the screen that depends on it. Computed properties derive live totals, progress percentages, and filtered lists without duplicating state.\n\nChapter 3: Document Persistence in MongoDB\nMongoDB stores application data as flexible JSON-like documents inside collections rather than rigid SQL tables. Using the native MongoDB driver, our Express server can query, insert, update, and delete documents in milliseconds. Saving reading progress inside a document allows a listener to pause on any page and resume later from the exact same sentence."
+                videos: [],
+                rawText: "Chapter 1: The Three-Tier Web Architecture\nModern web applications are divided into three clean layers that work together in harmony. The presentation layer runs in the user's browser using HTML, CSS, and reactive Vue.js components. When a user clicks a button, the browser sends an asynchronous HTTP request using the native Fetch API.\nThe application layer runs on a Node.js and Express.js server that listens for incoming requests. Express middlewares inspect, log, and validate the request before routing it to the right handler. This separation keeps the front-end fast and the back-end secure.\n\nChapter 2: Reactive State with Vue.js\nVue.js eliminates manual DOM manipulation by binding data directly to the HTML template. When a variable inside the data object changes, Vue automatically updates every part of the screen that depends on it. Computed properties derive live totals, progress percentages, and filtered lists without duplicating state.\nEvent directives allow buttons and inputs to trigger clean JavaScript methods. Two-way data binding keeps form fields synchronized with application state at all times. Together, these reactive primitives make complex interfaces simple to maintain.\n\nChapter 3: Document Persistence in MongoDB\nMongoDB stores application data as flexible JSON-like documents inside collections rather than rigid SQL tables. Using the native MongoDB driver, our Express server can query, insert, update, and delete documents in milliseconds. Saving reading progress inside a document allows a listener to pause on any page and resume later from the exact same sentence.\n\nChapter 4: Cloud Deployment and Continuous Delivery\nHosting the front-end on GitHub Pages and the Express API on a cloud service connects users around the world. Environment variables keep database credentials private and out of version control. Automated deployments ensure every committed improvement goes live within seconds."
             },
             {
                 _id: "673b40010000000000000002",
@@ -889,20 +1057,20 @@
                 currentSentenceIndex: 0,
                 createdAt: "2026-11-22",
                 videos: [],
-                rawText: "Chapter 1: The Imitation Game\nIn 1950, Alan Turing asked a simple but profound question: can machines think? Rather than debating definitions, he proposed a practical conversational test now known as the Turing Test. Early pioneers believed that symbolic rules and logic would quickly solve human intelligence.\nHowever, the physical world proved far more nuanced than chess boards and algebra theorems. Computers excelled at arithmetic, yet struggled to recognize a human face or understand spoken language.\n\nChapter 2: The Rise of Neural Networks\nInspired by the biological neurons of the human brain, researchers designed layered networks that learn directly from examples. With the arrival of graphics processors and massive datasets, deep learning transformed speech recognition and computer vision. Today, neural voices can read entire books aloud with natural rhythm and warmth."
+                rawText: "Chapter 1: The Imitation Game\nIn 1950, Alan Turing asked a simple but profound question: can machines think? Rather than debating definitions, he proposed a practical conversational test now known as the Turing Test. Early pioneers believed that symbolic rules and logic would quickly solve human intelligence.\nHowever, the physical world proved far more nuanced than chess boards and algebra theorems. Computers excelled at arithmetic, yet struggled to recognize a human face or understand spoken language.\n\nChapter 2: The Rise of Neural Networks\nInspired by the biological neurons of the human brain, researchers designed layered networks that learn directly from examples. With the arrival of graphics processors and massive datasets, deep learning transformed speech recognition and computer vision. Today, neural voices can read entire books aloud with natural rhythm and warmth.\n\nChapter 3: Reasoning and Autonomous Agents\nModern language models combine broad world knowledge with step-by-step reasoning. Instead of following fixed scripts, software agents can plan workflows, synthesize documents, and collaborate alongside human creators. The future of computing is an intuitive partnership between human intent and machine execution."
             },
             {
                 _id: "673b40010000000000000003",
-                title: "El Viaje del Lector (Spanish Sample)",
+                title: "El Viaje del Lector",
                 author: "Elena Morales",
-                fileType: "PPTX",
+                fileType: "EPUB",
                 language: "es-ES",
                 currentChapterIndex: 0,
                 currentPageIndex: 0,
                 currentSentenceIndex: 0,
                 createdAt: "2026-11-22",
                 videos: [],
-                rawText: "Chapter 1: La Biblioteca Nocturna\nLa pequeña lámpara iluminaba las páginas de papel antiguo mientras la lluvia caía suavemente afuera. Escuchar un libro capítulo por capítulo transforma cualquier habitación en un teatro para la imaginación. Cada palabra pronunciada en voz alta construye un puente entre el autor y el oyente.\n\nChapter 2: El Arte de Pausar\nUn buen lector sabe cuándo detenerse para reflexionar sobre una idea importante. Al guardar la página exacta, siempre podemos regresar mañana y continuar la historia desde el mismo lugar."
+                rawText: "Capítulo 1: La Biblioteca Nocturna\nLa pequeña lámpara iluminaba las páginas de papel antiguo mientras la lluvia caía suavemente afuera. Escuchar un libro capítulo por capítulo transforma cualquier habitación en un teatro para la imaginación. Cada palabra pronunciada en voz alta construye un puente entre el autor y el oyente.\n\nCapítulo 2: El Arte de Pausar\nUn buen lector sabe cuándo detenerse para reflexionar sobre una idea importante. Al guardar la página exacta, siempre podemos regresar mañana y continuar la historia desde el mismo lugar.\n\nCapítulo 3: Voces sin Fronteras\nLa tecnología moderna permite escuchar obras literarias en múltiples idiomas con claridad natural. Viajar a través de las palabras abre nuevas culturas y perspectivas en cada capítulo."
             }
         ];
 
@@ -917,28 +1085,25 @@
             return DEFAULT_DOCUMENTS.slice();
         }
 
-        // Helper: Normalizes any video URL (direct .mp4/.webm or YouTube link) into a playable object
         function normalizeVideoObject(url, customTitle) {
             const clean = String(url || "").trim();
             if (!clean) return null;
 
-            // Convert YouTube watch/short links into embeddable iframe URLs
             const ytMatch = clean.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/)([A-Za-z0-9_-]{6,})/i);
             if (ytMatch) {
                 return {
-                    title: customTitle || "Embedded YouTube Video",
+                    title: customTitle || "Embedded Video",
                     url: "https://www.youtube.com/embed/" + ytMatch[1],
                     kind: "iframe"
                 };
             }
             return {
-                title: customTitle || "Document Video Clip",
+                title: customTitle || "Document Video",
                 url: clean,
                 kind: "video"
             };
         }
 
-        // Helper: Scans raw text for any embedded video URLs (.mp4, .webm, .ogg, YouTube)
         function detectVideoUrlsInText(text) {
             const found = [];
             const seen = {};
@@ -947,14 +1112,13 @@
             matches.forEach(function(url, idx) {
                 if (!seen[url]) {
                     seen[url] = true;
-                    const obj = normalizeVideoObject(url, "Video Link #" + (idx + 1) + " in Document");
+                    const obj = normalizeVideoObject(url, "Document Video " + (idx + 1));
                     if (obj) found.push(obj);
                 }
             });
             return found;
         }
 
-        // Helper: Extracts embedded video files (word/media/* or ppt/media/*) from inside a .docx or .pptx ZIP container
         async function extractEmbeddedVideosFromZip(zip, sourceLabel) {
             const extractedVideos = [];
             const entries = Object.keys(zip.files);
@@ -969,7 +1133,7 @@
                     const blobUrl = URL.createObjectURL(typedBlob);
                     const baseName = filePath.split("/").pop();
                     extractedVideos.push({
-                        title: sourceLabel + " Embedded Video (" + baseName + ")",
+                        title: sourceLabel + " Video (" + baseName + ")",
                         url: blobUrl,
                         kind: "video"
                     });
@@ -978,7 +1142,7 @@
             return extractedVideos;
         }
 
-        // Helper: Splits raw text into structured Chapters -> Pages (3 sentences per page) -> Sentences
+        // Extracts exact Table of Contents headings (Chapters, Capítulos, Parts, Sections, Slides, PDF Pages, Markdown headings)
         function parseDocumentIntoChapters(rawText) {
             const cleaned = String(rawText || "").replace(/\r\n/g, "\n").trim();
             if (!cleaned) {
@@ -990,12 +1154,12 @@
             let currentTitle = "Chapter 1";
             let currentBuffer = [];
 
-            const headingRegex = /^(chapter\s+\d+|slide\s+\d+|pdf\s+page\s+\d+|part\s+\d+|section\s+\d+|#{1,3}\s+)(.*)$/i;
+            const headingRegex = /^(chapter\s+\d+|cap[íi]tulo\s+\d+|chapitre\s+\d+|slide\s+\d+|pdf\s+page\s+\d+|part\s+\d+|section\s+\d+|\d+\.\s+[A-Z]|#{1,3}\s+)(.*)$/i;
 
             lines.forEach(function(line) {
                 const trimmed = line.trim();
                 if (!trimmed) return;
-                if (headingRegex.test(trimmed)) {
+                if (headingRegex.test(trimmed) && trimmed.length <= 95) {
                     if (currentBuffer.length > 0) {
                         rawChapters.push({ title: currentTitle, text: currentBuffer.join(" ") });
                         currentBuffer = [];
@@ -1035,7 +1199,7 @@
                 const initialDocs = loadSavedDocs();
                 const firstDoc = initialDocs[0];
                 return {
-                    sitename: "VoxPage Universal Audio & Video Studio",
+                    sitename: "VoxPage",
                     backendOnline: false,
                     showPasteDrawer: false,
                     isParsingFile: false,
@@ -1069,7 +1233,7 @@
                     newDoc: {
                         title: "",
                         author: "",
-                        fileType: "TEXT",
+                        fileType: "DOC",
                         language: "en-GB",
                         videoUrlInput: "",
                         videos: [],
@@ -1135,7 +1299,6 @@
                     });
                 },
 
-                // Universal File Importer: Handles Word (.docx), PDF (.pdf), PowerPoint (.pptx), Text (.txt/.md), and Video (.mp4/.webm)
                 async handleUniversalFileUpload(event) {
                     const file = event.target.files && event.target.files[0];
                     if (!file) return;
@@ -1143,10 +1306,9 @@
                     const ext = file.name.split(".").pop().toLowerCase();
                     this.newDoc.title = file.name.replace(/\.[^.]+$/, "");
                     this.isParsingFile = true;
-                    this.uploadStatusMsg = "Reading " + file.name + "...";
+                    this.uploadStatusMsg = "Importing " + file.name + "...";
 
                     try {
-                        // CASE 1: Direct Video File (.mp4, .webm, .ogg, .mov)
                         if (["mp4", "webm", "ogg", "mov"].includes(ext) || file.type.startsWith("video/")) {
                             const blobUrl = URL.createObjectURL(file);
                             this.newDoc.fileType = "VIDEO";
@@ -1156,12 +1318,10 @@
                                 kind: "video"
                             });
                             if (!this.newDoc.rawText.trim()) {
-                                this.newDoc.rawText = "Chapter 1: Video Companion Notes\nThis document includes the attached video file " + file.name + ". Click Play Video in Document above to watch the video, or paste your transcript and lecture notes here to have VoxPage read them aloud.";
+                                this.newDoc.rawText = "Chapter 1: " + this.newDoc.title + "\nMedia file loaded and ready for playback.";
                             }
-                            this.uploadStatusMsg = "Loaded video file: " + file.name + " (Ready to play!)";
-                        }
-                        // CASE 2: PDF Document (.pdf) via PDF.js
-                        else if (ext === "pdf") {
+                            this.uploadStatusMsg = "Attached video: " + file.name;
+                        } else if (ext === "pdf") {
                             this.newDoc.fileType = "PDF";
                             const arrayBuffer = await file.arrayBuffer();
                             const pdf = await window.pdfjsLib.getDocument({ data: arrayBuffer }).promise;
@@ -1172,45 +1332,38 @@
                                 const textContent = await page.getTextContent();
                                 const pageText = textContent.items.map(function(item) { return item.str; }).join(" ").trim();
                                 if (pageText) {
-                                    pageChapters.push("PDF Page " + p + ": Page " + p + "\n" + pageText);
+                                    pageChapters.push("PDF Page " + p + "\n" + pageText);
                                 }
-                                // Check PDF annotations for embedded video links
                                 try {
                                     const annotations = await page.getAnnotations();
                                     annotations.forEach((ann) => {
                                         if (ann.url && /\.(mp4|webm|ogg|mov)|youtube\.com|youtu\.be/i.test(ann.url)) {
-                                            const vObj = normalizeVideoObject(ann.url, "PDF Page " + p + " Video Link");
+                                            const vObj = normalizeVideoObject(ann.url, "Page " + p + " Video");
                                             if (vObj) this.newDoc.videos.push(vObj);
                                         }
                                     });
                                 } catch (e) {}
                             }
-                            this.newDoc.rawText = pageChapters.join("\n\n") || "Chapter 1: Extracted PDF\nNo selectable text was found in this PDF.";
-                            this.uploadStatusMsg = "Extracted " + pdf.numPages + " PDF page(s) from " + file.name + "!";
-                        }
-                        // CASE 3: Word Document (.docx) via Mammoth.js + JSZip for embedded media
-                        else if (ext === "docx") {
+                            this.newDoc.rawText = pageChapters.join("\n\n") || "Chapter 1: Document\nNo selectable text detected.";
+                            this.uploadStatusMsg = "Imported " + pdf.numPages + " PDF pages.";
+                        } else if (ext === "docx") {
                             this.newDoc.fileType = "DOCX";
                             const arrayBuffer = await file.arrayBuffer();
                             const result = await window.mammoth.extractRawText({ arrayBuffer: arrayBuffer });
-                            this.newDoc.rawText = (result.value || "").trim() || "Chapter 1: Word Document\nNo text found.";
+                            this.newDoc.rawText = (result.value || "").trim() || "Chapter 1: Document\nNo text detected.";
 
-                            // Also inspect the .docx zip archive for any embedded videos in word/media/
                             if (window.JSZip) {
                                 const zip = await window.JSZip.loadAsync(arrayBuffer);
                                 const embeddedVids = await extractEmbeddedVideosFromZip(zip, "Word");
                                 this.newDoc.videos.push(...embeddedVids);
                             }
-                            this.uploadStatusMsg = "Extracted Word document (" + file.name + ")" +
-                                (this.newDoc.videos.length ? " + " + this.newDoc.videos.length + " embedded video(s)!" : "!");
-                        }
-                        // CASE 4: PowerPoint Presentation (.pptx) via JSZip slide XML + ppt/media/ video extractor
-                        else if (ext === "pptx") {
+                            this.uploadStatusMsg = "Imported Word document" +
+                                (this.newDoc.videos.length ? " with " + this.newDoc.videos.length + " embedded video(s)." : ".");
+                        } else if (ext === "pptx") {
                             this.newDoc.fileType = "PPTX";
                             const arrayBuffer = await file.arrayBuffer();
                             const zip = await window.JSZip.loadAsync(arrayBuffer);
 
-                            // Find and sort all slide XML files: ppt/slides/slide1.xml, slide2.xml, ...
                             const slideFiles = Object.keys(zip.files)
                                 .filter(function(name) { return /^ppt\/slides\/slide\d+\.xml$/i.test(name); })
                                 .sort(function(a, b) {
@@ -1236,23 +1389,20 @@
                                 }
                             }
 
-                            // Extract any embedded video clips inside ppt/media/
-                            const embeddedVids = await extractEmbeddedVideosFromZip(zip, "PowerPoint");
+                            const embeddedVids = await extractEmbeddedVideosFromZip(zip, "Slide");
                             this.newDoc.videos.push(...embeddedVids);
 
-                            this.newDoc.rawText = slideChapters.join("\n\n") || "Slide 1: PowerPoint Presentation\nNo slide text found.";
-                            this.uploadStatusMsg = "Extracted " + slideFiles.length + " PowerPoint slide(s)" +
-                                (embeddedVids.length ? " + " + embeddedVids.length + " embedded slide video(s)!" : "!");
-                        }
-                        // CASE 5: Plain Text, Markdown, CSV, JSON, or Legacy .doc
-                        else {
+                            this.newDoc.rawText = slideChapters.join("\n\n") || "Slide 1: Presentation\nNo text detected.";
+                            this.uploadStatusMsg = "Imported " + slideFiles.length + " slides" +
+                                (embeddedVids.length ? " with " + embeddedVids.length + " embedded video(s)." : ".");
+                        } else {
                             this.newDoc.fileType = ext.toUpperCase();
                             const text = await file.text();
                             this.newDoc.rawText = text;
-                            this.uploadStatusMsg = "Loaded " + file.name + "!";
+                            this.uploadStatusMsg = "Imported " + file.name + ".";
                         }
                     } catch (err) {
-                        this.uploadStatusMsg = "Could not binary-parse file; reading as plain text.";
+                        this.uploadStatusMsg = "Loaded file as plain text.";
                         try {
                             this.newDoc.rawText = await file.text();
                         } catch (e) {}
@@ -1261,7 +1411,6 @@
                     }
                 },
 
-                // Allows attaching an extra video file (.mp4, .webm) to any Word/PDF/PPTX document
                 handleExtraVideoUpload(event) {
                     const file = event.target.files && event.target.files[0];
                     if (!file) return;
@@ -1271,7 +1420,7 @@
                         url: blobUrl,
                         kind: "video"
                     });
-                    this.uploadStatusMsg = "Attached video file: " + file.name;
+                    this.uploadStatusMsg = "Attached video: " + file.name;
                 },
 
                 docVideosFor(doc) {
@@ -1283,7 +1432,6 @@
                 openAndPlayVideo() {
                     this.showVideoPlayer = !this.showVideoPlayer;
                     if (this.showVideoPlayer && this.isPlaying) {
-                        // Automatically pause the voice narrator when opening the video player
                         this.stopAudio();
                         this.saveBookmark();
                     }
@@ -1302,15 +1450,15 @@
 
                     const allVideos = this.newDoc.videos.slice();
                     if (this.newDoc.videoUrlInput.trim()) {
-                        const manualVid = normalizeVideoObject(this.newDoc.videoUrlInput.trim(), "Attached Video Link");
+                        const manualVid = normalizeVideoObject(this.newDoc.videoUrlInput.trim(), "Attached Video");
                         if (manualVid) allVideos.push(manualVid);
                     }
 
                     const docObj = {
                         _id: String(Date.now()),
                         title: this.newDoc.title.trim(),
-                        author: this.newDoc.author.trim() || "Uploaded Document",
-                        fileType: this.newDoc.fileType || "TEXT",
+                        author: this.newDoc.author.trim() || "Author",
+                        fileType: this.newDoc.fileType || "DOC",
                         language: this.newDoc.language,
                         currentChapterIndex: 0,
                         currentPageIndex: 0,
@@ -1341,7 +1489,7 @@
                     this.saveLocalBackup();
                     this.newDoc.title = "";
                     this.newDoc.author = "";
-                    this.newDoc.fileType = "TEXT";
+                    this.newDoc.fileType = "DOC";
                     this.newDoc.videoUrlInput = "";
                     this.newDoc.videos = [];
                     this.newDoc.rawText = "";
@@ -1391,7 +1539,6 @@
                         }
                     }
                 },
-                // Core Web Speech API Narrator Engine
                 speakCurrentSentence() {
                     if (!("speechSynthesis" in window)) return;
                     window.speechSynthesis.cancel();
@@ -1456,6 +1603,37 @@
                     this.currentSentenceIndex = sIdx;
                     this.speakCurrentSentence();
                 },
+                // Clicking any chapter in the Table of Contents jumps there and plays immediately
+                playFromTocChapter(cIdx) {
+                    this.stopAudio();
+                    this.currentChapterIndex = cIdx;
+                    this.currentPageIndex = 0;
+                    this.currentSentenceIndex = 0;
+                    this.saveBookmark();
+                    this.speakCurrentSentence();
+                },
+                // Clicking any sub-page in the Table of Contents jumps to that exact page and plays immediately
+                playFromTocPage(cIdx, pIdx) {
+                    this.stopAudio();
+                    this.currentChapterIndex = cIdx;
+                    this.currentPageIndex = pIdx;
+                    this.currentSentenceIndex = 0;
+                    this.saveBookmark();
+                    this.speakCurrentSentence();
+                },
+                // Jumping to any global book page number (Page 1..N across the whole book)
+                jumpToGlobalPage(globalNum) {
+                    const target = Number(globalNum);
+                    const match = this.allGlobalPages.find((gp) => gp.globalPageNumber === target);
+                    if (!match) return;
+                    const wasPlaying = this.isPlaying;
+                    this.stopAudio();
+                    this.currentChapterIndex = match.chapterIndex;
+                    this.currentPageIndex = match.pageIndex;
+                    this.currentSentenceIndex = 0;
+                    this.saveBookmark();
+                    if (wasPlaying) this.speakCurrentSentence();
+                },
                 advanceToNextSentence(continuePlaying) {
                     if (this.currentSentenceIndex + 1 < this.currentPageSentences.length) {
                         this.currentSentenceIndex++;
@@ -1495,23 +1673,6 @@
                         this.currentPageIndex = Math.max(0, this.currentChapterPages.length - 1);
                         this.currentSentenceIndex = 0;
                     }
-                    this.saveBookmark();
-                    if (wasPlaying) this.speakCurrentSentence();
-                },
-                jumpToChapter(cIdx) {
-                    const wasPlaying = this.isPlaying;
-                    this.stopAudio();
-                    this.currentChapterIndex = cIdx;
-                    this.currentPageIndex = 0;
-                    this.currentSentenceIndex = 0;
-                    this.saveBookmark();
-                    if (wasPlaying) this.speakCurrentSentence();
-                },
-                jumpToPage(pIdx) {
-                    const wasPlaying = this.isPlaying;
-                    this.stopAudio();
-                    this.currentPageIndex = Number(pIdx);
-                    this.currentSentenceIndex = 0;
                     this.saveBookmark();
                     if (wasPlaying) this.speakCurrentSentence();
                 },
@@ -1579,6 +1740,53 @@
                     if (!this.activeDoc) return [];
                     return parseDocumentIntoChapters(this.activeDoc.rawText);
                 },
+                // Builds the exact Table of Contents with global book page numbers and sub-page previews
+                tableOfContents() {
+                    let runningGlobalPage = 1;
+                    return this.parsedChapters.map((ch, cIdx) => {
+                        const startPage = runningGlobalPage;
+                        const subPages = ch.pages.map((sentences, pIdx) => {
+                            const gNum = runningGlobalPage++;
+                            const firstLine = (sentences[0] || "").slice(0, 42);
+                            return {
+                                pageIndex: pIdx,
+                                globalPageNumber: gNum,
+                                preview: firstLine + (firstLine.length >= 42 ? "..." : "")
+                            };
+                        });
+                        return {
+                            chapterIndex: cIdx,
+                            title: ch.title,
+                            startGlobalPage: startPage,
+                            pageCount: ch.pages.length,
+                            subPages: subPages
+                        };
+                    });
+                },
+                // Flat list of every page across the entire document for the "Go to Book Page (1 - N)" selector
+                allGlobalPages() {
+                    const list = [];
+                    this.tableOfContents.forEach((toc) => {
+                        toc.subPages.forEach((sp) => {
+                            list.push({
+                                globalPageNumber: sp.globalPageNumber,
+                                chapterIndex: toc.chapterIndex,
+                                pageIndex: sp.pageIndex,
+                                chapterTitle: toc.title
+                            });
+                        });
+                    });
+                    return list;
+                },
+                totalBookPages() {
+                    return Math.max(1, this.allGlobalPages.length);
+                },
+                currentGlobalPageNumber() {
+                    const found = this.allGlobalPages.find(
+                        (gp) => gp.chapterIndex === this.currentChapterIndex && gp.pageIndex === this.currentPageIndex
+                    );
+                    return found ? found.globalPageNumber : 1;
+                },
                 currentChapterObj() {
                     return this.parsedChapters[this.currentChapterIndex] || { title: "Chapter 1", pages: [[""]] };
                 },
@@ -1609,18 +1817,8 @@
                     return this.currentChapterIndex > 0 || this.currentPageIndex > 0 || this.currentSentenceIndex > 0;
                 },
                 bookProgressPercent() {
-                    let totalPages = 0;
-                    let completedPages = 0;
-                    this.parsedChapters.forEach((ch, cIdx) => {
-                        totalPages += ch.pages.length;
-                        if (cIdx < this.currentChapterIndex) {
-                            completedPages += ch.pages.length;
-                        } else if (cIdx === this.currentChapterIndex) {
-                            completedPages += this.currentPageIndex;
-                        }
-                    });
-                    if (totalPages <= 1) return 100;
-                    return Math.min(100, Math.round(((completedPages + 1) / totalPages) * 100));
+                    if (this.totalBookPages <= 1) return 100;
+                    return Math.min(100, Math.round((this.currentGlobalPageNumber / this.totalBookPages) * 100));
                 },
                 estimatedMinutesLeft() {
                     if (!this.activeDoc) return 1;
